@@ -1,4 +1,4 @@
-# TIM — Kelompok <k>
+# TIM — Kelompok k01
 
 Setiap anggota membangun infrastruktur di **akun AWS sendiri** dan di repo `koma-infra` miliknya.
 Kelompok berbagi kasus, keputusan, dan laporan akhir. Salin isi tabel yang sama ke `TIM.md` di repo
@@ -6,18 +6,15 @@ setiap anggota.
 
 | Hal | Isi |
 |---|---|
-| ID kelompok | `k0_` (k01–k05) |
-| Kasus | <nama kasus, mis. Klinik Sehat Lampung> (`studi-kasus/kasus-<k>-….md`) |
-| Pemilik repo ini (NIM) | |
+| ID kelompok | `k01` |
+| Kasus | Klinik Sehat Lampung (`studi-kasus/kasus-k01-klinik-sehat-lampung.md`) |
+| Pemilik repo ini (NIM) | 123450039 |
 
 ## Anggota
 
 | NIM | Nama | Repo GitHub `koma-infra` |
 |---|---|---|
-| | | |
-| | | |
-| | | |
-| | | |
+| 123450039 | Feby Angelina | github.com/FebyAngelins/koma-infra |
 
 ## Peninjau per modul
 
@@ -26,7 +23,7 @@ Setiap modul, pemilik repo membuka *pull request* dan meminta satu anggota lain 
 
 | Modul | Peninjau PR saya (NIM) | Saya meninjau PR milik (NIM) |
 |---|---|---|
-| m01 | | |
+| m01 | - | - |
 | m02 | | |
 | m03 | | |
 | m04 | | |
