@@ -23,8 +23,8 @@ Waktu ditulis dalam WIB. ID instance disalin dari terminal (`i-0…`); jangan me
 | C.1 Plan kedua | 06-11-2026 13:43 | `tofu plan -detailed-exitcode` | `No changes`; `exit code = 0` (idempoten) |
 | C.3 Refaktor | 06-11-2026 13:46 | `tofu apply m01.tfplan` | `aws_instance.web has moved to aws_instance.layanan["web"]` (ID `i-05ccf295a0b123508` tetap); `api` dibuat; `Plan: 1 to add, 0 to change, 0 to destroy` |
 | C.4 Potret 4 | 06-11-2026 13:47 | `koma cek m01` | `dua_peran` dan `refaktor_tanpa_ganti` LULUS; tinggal `bersih_akhir` GAGAL |
-| D.1 Destroy + apply | | `tofu destroy`, `tofu apply` | |
-| D.1 Potret 4 | | `koma cek m01` | |
+| D.1 Destroy + apply | 06-11-2026 13:49–13:52 | `tofu destroy`, `tofu apply` | destroy pertama terputus `RequestExpired` (kredensial habis), diulang setelah login: `0 destroyed` karena instance sudah terhapus; apply ulang `Plan: 2 to add` |
+| D.1 Potret 5 | 06-11-2026 13:52 | `koma cek m01` | `reproducible` LULUS; tinggal `bersih_akhir` GAGAL |
 | Latihan L.4 (potret 5) | | `tofu apply`, `koma cek m01` | |
 | E.1 Destroy + potret 6 | | `tofu destroy`, `koma cek m01`, `koma sisa` | |
 | Tugas: katalog kasus | | `tofu apply`, `koma cek m01` | |
@@ -73,31 +73,31 @@ teknis (ukuran, OS, jaringan) hanya tercatat di tiket dan ingatan admin.
 ## Catatan Bagian D
 
 - Plan kedua (C.1): exit code = 0 (`No changes. Your infrastructure matches the configuration.`)
-- ID sebelum destroy: `web` …, `api` …
-- ID sesudah apply ulang: `web` …, `api` …
-- Waktu destroy: … ; waktu apply ulang: …
-- Potret yang meluluskan `reproducible`: potret … dan potret …
+- ID sebelum destroy: `web` `i-05ccf295a0b123508`, `api` `i-0d7d80cf929db24ee`
+- ID sesudah apply ulang: `web` `i-09379a18a1728d275`, `api` `i-0241a7743e310aecd` (nama, tipe `t3.micro`, AMI `ami-062900c135ab91582`, dan tag sama; ID berbeda)
+- Waktu destroy: 13:49–13:50 WIB (terputus sekali karena kredensial habis); waktu apply ulang: 13:52 WIB, kedua instance selesai dalam kurang dari 1 menit
+- Potret yang meluluskan `reproducible`: potret 4 dan potret 5 (sebelumnya sudah lulus sekali di potret 2 dan 3 karena `web` diganti dengan `-replace`)
 
 ### Model layanan
 
 | Komponen | IaaS / PaaS / SaaS / bukan model layanan | Alasan (lapisan yang saya sentuh dan yang tidak) |
 |---|---|---|
-| Instance EC2 | | |
-| AWS Budgets | | |
-| Repo GitHub | | |
-| Workbench (panel Tugas) | | |
-| `koma cek` | | |
+| Instance EC2 | IaaS | Saya memilih AMI, tipe instance, disk, jaringan, dan tag; isi sistem operasi menjadi urusan saya. Host fisik, hypervisor, dan jaringan fisik diurus AWS. |
+| AWS Budgets | SaaS (fitur layanan terkelola, bukan server) | Saya hanya mengatur batas USD 50 dan e-mail peringatan; tidak ada server, OS, atau runtime yang saya sentuh. |
+| Repo GitHub | SaaS | Saya hanya memakai fitur repo, branch, dan pull request lewat web dan `git push`; server Git, penyimpanan, dan OS diurus GitHub. |
+| Workbench (panel Tugas) | SaaS | Saya hanya memakai aplikasi web untuk membaca naskah dan mengunggah tugas; server dan platformnya dikelola kampus. |
+| `koma cek` | Bukan model layanan cloud | Skrip Python yang berjalan di laptop saya sendiri; ia hanya klien yang memanggil API AWS dengan kredensial saya, seperti AWS CLI. |
 
 ### Karakteristik cloud yang dialami
 
 | Karakteristik ([S] hlm. 40–45) | Dialami / dibatasi / tidak | Bukti hari ini (perintah, keluaran, atau angka) |
 |---|---|---|
-| On-demand provisioning | | |
-| Self-service | | |
-| Resource pooling, multi-tenancy | | |
-| Rapid elasticity | | |
-| Measured service | | |
-| Broad network access | | |
+| On-demand provisioning | Dialami | `tofu apply` membuat `web` dalam 16–18 detik; `run-instances` mengembalikan ID dalam beberapa detik, tanpa menunggu siapa pun. |
+| Self-service | Dialami | Instance dibuat lewat konsol, CLI, dan OpenTofu dengan identitas saya sendiri, tanpa tiket ke admin (bandingkan dugaan pre-lab 1–2 minggu). |
+| Resource pooling, multi-tenancy | Dialami, tidak terlihat langsung | Saya tidak memilih host fisik; instance berjalan di host bersama penyewa lain di AZ ap-southeast-2a/2b/2c, dan akun lain tidak terlihat dari akun saya. |
+| Rapid elasticity | Dialami, dibatasi | Dua instance dihapus lalu dibuat ulang dalam sekitar 3 menit (D.1), tetapi ukuran dibatasi `t3.micro`/`t3.small` dan kuota vCPU akun kecil. |
+| Measured service | Dialami, dengan jeda | Anggaran `koma-123450039-anggaran` USD 50 dengan `include_credit = false` memantau pemakaian; angka Current di Budgets belum langsung berubah karena data biaya diperbarui beberapa kali sehari. |
+| Broad network access | Dialami | Konsol dan API dipanggil dari laptop pribadi lewat internet (`aws`, `tofu`, `koma`); kredensial sementara bisa kedaluwarsa (`RequestExpired`) sehingga perlu login ulang. |
 
 ## Potret Tugas
 
