@@ -28,7 +28,7 @@ Waktu ditulis dalam WIB. ID instance disalin dari terminal (`i-0…`); jangan me
 | Latihan L.4 | 06-11-2026 14:00 | `tofu apply`, `koma cek m01` | `api` `t3.micro` → `t3.small` in-place dalam 38 detik, ID tetap; plan sesudahnya `exit code = 0` |
 | E.1 Destroy + potret 7 | 06-11-2026 14:05–14:16 | `tofu destroy`, `koma cek m01`, `koma sisa` | `Destroy complete! Resources: 2 destroyed`; potret 7 kosong, 13 cek LULUS, `Latihan lulus: True`, `Tugas lulus: True` |
 | Tugas: katalog kasus | 06-11-2026 14:22 | `tofu apply`, `koma cek m01` | `Plan: 3 to add`; `portal` `i-08a49c05fc032899b`, `rme-api` `i-0c898a87503b21673` (t3.small), `notif-worker` `i-04ca85b74522200a4`; potret 8 aktif, 3 instance, peran `api`, `web`, `worker` |
-| Tugas: destroy akhir | | `tofu destroy`, `koma cek m01` | |
+| Tugas: destroy akhir | 06-11-2026 14:26 | `tofu destroy`, `koma cek m01` | 3 instance dihapus; potret 9 kosong, `Tugas lulus: True`; `koma sisa`: instance tanpa `managed-by` 0, sisa bertag hanya instance/volume yang baru di-terminate |
 
 ## Dugaan Pre-lab (Langkah 5)
 
@@ -103,4 +103,4 @@ teknis (ukuran, OS, jaringan) hanya tercatat di tiket dan ingatan admin.
 
 - Katalog kasus (`default` di `variables.tf`): kunci `portal`, `rme-api`, `notif-worker`; peran `web`, `api`, `worker`; ukuran `kecil`, `sedang`, `kecil`
 - Potret aktif katalog kasus: nomor 8, waktu 06-11-2026 14:22:01 WIB (`2026-11-06T07:22:01Z`)
-- Potret bersih terakhir: nomor …, waktu …; `tugas_lulus`: …
+- Potret bersih terakhir: nomor 9, waktu 06-11-2026 14:26:41 WIB (`2026-11-06T07:26:41Z`); `tugas_lulus`: true
