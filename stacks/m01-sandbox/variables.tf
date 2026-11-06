@@ -30,9 +30,11 @@ variable "layanan" {
     ukuran = string
     os     = optional(string, "al2023")
   }))
+  # Katalog kasus k01 Klinik Sehat Lampung (E1): tiga komponen aplikasi
   default = {
-    web = { peran = "web", ukuran = "kecil" }
-    api = { peran = "api", ukuran = "kecil" }
+    portal       = { peran = "web", ukuran = "kecil" }    # portal pasien dan dasbor klinik
+    rme-api      = { peran = "api", ukuran = "sedang" }   # API pendaftaran dan RME (E4 99,95%, E5 p95 < 500 ms)
+    notif-worker = { peran = "worker", ukuran = "kecil" } # pengirim hasil lab dan notifikasi pasien
   }
 
   # kunci dipakai di tag Name, jadi polanya mengikuti cek nama_konvensi
