@@ -23,7 +23,7 @@ Satu baris per `koma cek m02`. Potret terakhir sebelum mengumpulkan harus potret
 
 | Potret | Langkah | Keadaan | Waktu (WIB) | Hasil penting (`Latihan lulus` / `Tugas lulus`, cek yang gagal) |
 |---|---|---|---|---|
-| 1 | C.4.5 | api 2.0.0 dari AMI 2.0.0 | | |
+| 1 | C.4.5 | api 2.0.0 dari AMI 2.0.0 | 06-11-2026 14:52 | `Latihan lulus: True`, `Tugas lulus: False`; 11/13 LULUS, gagal `immutable` dan `bersih_akhir` |
 | 2 | D.4 | api 2.1.0, ID baru | | |
 | 3 | Latihan 2.1 | api 2.1.0 + server goreng | | |
 | 4 | E.2.2 | bersih setelah `tofu destroy` | | |
@@ -34,15 +34,15 @@ Satu baris per `koma cek m02`. Potret terakhir sebelum mengumpulkan harus potret
 
 | Hal | Isi |
 |---|---|
-| AMI publik terbaru (ID dan nama) | |
-| `pemilik` (OwnerId) | |
-| `virtualisasi`, `ena`, `root` | |
-| Hypervisor, vCPU, memori `t2.micro` | |
-| Hypervisor, vCPU, memori `t3.micro` | |
-| Hypervisor, vCPU, memori `t3.small` | |
-| Ukuran user data (`length(local.cloud_init)`) | |
+| AMI publik terbaru (ID dan nama) | Tiga AMI terbit bersamaan 2026-10-30: `ami-062900c135ab91582` (`al2023-ami-2023.12.20261102.0-kernel-6.18-x86_64`), `ami-099dee059bb2abc3c` (kernel-6.12), `ami-0fe72ee76eb56783b` (kernel-6.1). Data source `most_recent = true` memilih `ami-062900c135ab91582` (kernel-6.18), sama seperti di Modul 01. |
+| `pemilik` (OwnerId) | `137112412989` (akun Amazon, bukan akun saya) |
+| `virtualisasi`, `ena`, `root` | `hvm`, `true`, `ebs` (arsitektur `x86_64`, publik `true`) |
+| Hypervisor, vCPU, memori `t2.micro` | `xen`, 1 vCPU, 1024 MiB, burstable |
+| Hypervisor, vCPU, memori `t3.micro` | `nitro`, 2 vCPU, 1024 MiB, burstable |
+| Hypervisor, vCPU, memori `t3.small` | `nitro`, 2 vCPU, 2048 MiB, burstable |
+| Ukuran user data (`length(local.cloud_init)`) | 5558 karakter (sekitar sepertiga batas 16 KB berkat `base64gzip()`) |
 
-Mengapa pembangun cukup memakai `t3.micro` (satu kalimat):
+Mengapa pembangun cukup memakai `t3.micro` (satu kalimat): pembangun hanya menjalankan cloud-init yang menulis tiga berkas dan menyalakan satu layanan, tanpa mengunduh paket atau melayani pengguna, sehingga 2 vCPU burstable dan 1 GiB memori sudah lebih dari cukup sebelum ia dipotret menjadi AMI.
 
 ## Catatan Bagian B
 
@@ -52,7 +52,7 @@ Mengapa pembangun cukup memakai `t3.micro` (satu kalimat):
 | `time_sleep.tunggu_cloud_init` Creation complete | |
 | `aws_ami_from_instance.api` Creation complete | |
 | **Waktu panggang** (jumlah ketiganya) | |
-| ID dan nama AMI 2.0.0 | |
+| ID dan nama AMI 2.0.0 | `ami-04c8c952bb796d41d`, `koma-123450039-m02-api-2.0.0` |
 | `OwnerId` AMI (sama dengan akun saya?) | |
 | Baris `Cloud-init ... Up N seconds` dari log konsol (beserta jamnya) | |
 
@@ -62,8 +62,8 @@ Apakah jeda 120 detik cukup, dan apa buktinya:
 
 | Hal | Isi |
 |---|---|
-| `url_api` | |
-| ID instance api | |
+| `url_api` | `http://3.27.73.80` |
+| ID instance api | `i-0b8eff1c29db0b71f` (instance pertama `i-06301b3ed407219ad` lahir tanpa IP publik, lalu diganti dengan `tofu apply -replace=aws_instance.api` setelah subnet bawaan dikembalikan ke `MapPublicIpOnLaunch = True`) |
 | `aws_instance.api` Creation complete | |
 | **Waktu siap** dari `koma sehat` (detik) | |
 | Jawaban `/versi` (versi dan host) | |
@@ -74,9 +74,9 @@ Apakah jeda 120 detik cukup, dan apa buktinya:
 
 | Hal | Sebelum (2.0.0) | Sesudah (2.1.0) |
 |---|---|---|
-| ID instance api | | |
-| IP publik api | | |
-| ID AMI | | |
+| ID instance api | `i-0b8eff1c29db0b71f` | |
+| IP publik api | 3.27.73.80 | |
+| ID AMI | `ami-04c8c952bb796d41d` (`koma-123450039-m02-api-2.0.0`) | |
 
 Rantai penggantian 2.0.0 → 2.1.0 (dari `tofu plan`):
 
