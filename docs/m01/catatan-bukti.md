@@ -14,8 +14,8 @@ Waktu ditulis dalam WIB. ID instance disalin dari terminal (`i-0…`); jangan me
 
 | Langkah | Waktu (WIB) | Perintah | Hasil singkat |
 |---|---|---|---|
-| A.1 Konsol | | (konsol EC2) | |
-| A.2 CLI dua kali | | `aws ec2 run-instances …` | |
+| A.1 Konsol | 06-11-2026 12:59 | (konsol EC2) | `coba-konsol` `i-0d98afe3fcbca3d86` running |
+| A.2 CLI dua kali | 06-11-2026 13:00 | `aws ec2 run-instances …` | dua `coba-cli`: `i-0aaecc5d9b7721705`, `i-0aa4d93233d5e29e2` |
 | A.3 Cek + bongkar | | `koma cek m01`, `aws ec2 terminate-instances …` | |
 | B.1 Anggaran | | `tofu apply m00.tfplan` | |
 | B.4 Apply pertama | | `tofu apply m01.tfplan` | |
@@ -54,12 +54,20 @@ teknis (ukuran, OS, jaringan) hanya tercatat di tiket dan ingatan admin.
 
 ## Catatan Bagian A
 
-- Waktu konsol (klik pertama sampai `Running`): … menit … detik; jumlah isian yang disentuh: …
-- Waktu CLI (Enter sampai `running`): … detik
-- ID instance: `coba-konsol` …; dua `coba-cli` … dan …
+- Waktu konsol (klik pertama sampai `Running`): ± 8 menit; jumlah isian yang disentuh: ± 6 (Nama, AMI dicek, tipe instance, key pair, IP publik, grup keamanan)
+- Waktu CLI (Enter sampai `running`): ID instance keluar dalam beberapa detik, status `running` sudah terlihat kurang dari 1 menit kemudian
+- ID instance: `coba-konsol` `i-0d98afe3fcbca3d86`; dua `coba-cli` `i-0aaecc5d9b7721705` dan `i-0aa4d93233d5e29e2` (nama sama, ID berbeda: tag `Name` bukan pengenal unik)
 - Keputusan yang tidak tercatat di mana pun selain ingatan dan riwayat terminal saya:
-  - …
-  - …
+  - Region Asia Pacific (Sydney) `ap-southeast-2`, dipilih lewat pemilih region di konsol
+  - AMI Amazon Linux 2023 kernel-6.18, x86_64 (bawaan konsol; ID AMI tidak ditulis di mana pun)
+  - Tipe instance `t3.micro`
+  - Tanpa key pair (tidak ada login SSH)
+  - IP publik dinonaktifkan (bawaan konsol justru Aktifkan)
+  - Grup keamanan `default` (bawaan konsol justru membuat `launch-wizard-1` dengan SSH dari 0.0.0.0/0)
+  - Subnet "Tidak ada preferensi" di VPC bawaan
+  - Disk root 8 GiB gp3, tidak dienkripsi (bawaan)
+  - Tag hanya `Name`; tidak ada tag pemilik, modul, atau `managed-by`
+  - Di CLI: perintah yang sama dijalankan dua kali menghasilkan dua server bernama sama
 - Semua instance Bagian A sudah di-terminate (bukti: `describe-instances` kosong; `tanpa_instance_liar` lulus pada potret …): ya / belum
 
 ## Catatan Bagian D
