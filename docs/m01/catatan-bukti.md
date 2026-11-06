@@ -20,7 +20,7 @@ Waktu ditulis dalam WIB. ID instance disalin dari terminal (`i-0…`); jangan me
 | B.1 Anggaran | 06-11-2026 13:08 | `tofu apply m00.tfplan` | budget `koma-123450039-anggaran` USD 50 dibuat |
 | B.4 Apply pertama | 06-11-2026 13:14 | `tofu apply m01.tfplan` | `Plan: 1 to add`; `web` `i-018dae2133d210786`, IP privat 172.31.27.176, selesai dalam 18 detik. Ternyata mendapat IP publik 13.211.39.50 karena ketiga subnet bawaan `MapPublicIpOnLaunch = True`; subnet diubah ke `False` (`aws ec2 modify-subnet-attribute --no-map-public-ip-on-launch`), lalu 13:38 `tofu apply -replace=aws_instance.web` → `web` baru `i-05ccf295a0b123508`, IP privat 172.31.24.65 |
 | B.5 Potret 2 | | `koma cek m01` | |
-| C.1 Plan kedua | | `tofu plan -detailed-exitcode` | |
+| C.1 Plan kedua | 06-11-2026 13:43 | `tofu plan -detailed-exitcode` | `No changes`; `exit code = 0` (idempoten) |
 | C.3 Refaktor | | `tofu apply m01.tfplan` | |
 | C.4 Potret 3 | | `koma cek m01` | |
 | D.1 Destroy + apply | | `tofu destroy`, `tofu apply` | |
@@ -72,7 +72,7 @@ teknis (ukuran, OS, jaringan) hanya tercatat di tiket dan ingatan admin.
 
 ## Catatan Bagian D
 
-- Plan kedua (C.1): exit code = 
+- Plan kedua (C.1): exit code = 0 (`No changes. Your infrastructure matches the configuration.`)
 - ID sebelum destroy: `web` …, `api` …
 - ID sesudah apply ulang: `web` …, `api` …
 - Waktu destroy: … ; waktu apply ulang: …

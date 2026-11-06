@@ -6,13 +6,13 @@
   "region": "ap-southeast-2",
   "akun_sidik": "900310cd4973e8a5",
   "modul": "m01",
-  "dibuat": "2026-11-06T06:39:40Z",
+  "dibuat": "2026-11-06T06:47:05Z",
   "sumber": "lokal",
   "hasil": [
     {
       "id": "instance_ada",
       "lulus": true,
-      "pesan": "1 instance bertag nim=123450039, modul=m01"
+      "pesan": "2 instance bertag nim=123450039, modul=m01"
     },
     {
       "id": "dikelola_kode",
@@ -51,8 +51,8 @@
     },
     {
       "id": "dua_peran",
-      "lulus": false,
-      "pesan": "peran berbeda: ['web']"
+      "lulus": true,
+      "pesan": "peran berbeda: ['api', 'web']"
     },
     {
       "id": "tanpa_instance_liar",
@@ -61,7 +61,7 @@
     },
     {
       "id": "refaktor_tanpa_ganti",
-      "lulus": false,
+      "lulus": true,
       "pesan": "instance lama dipertahankan saat for_each menambah instance baru (blok moved)"
     },
     {
@@ -137,6 +137,31 @@
         "tanpa_ip_publik": true,
         "anggaran_ada": true,
         "dua_peran": false
+      }
+    },
+    {
+      "waktu": "2026-11-06T06:47:05Z",
+      "aktif": true,
+      "instance": {
+        "koma-123450039-m01-api": {
+          "id": "i-0d7d80cf929db24ee",
+          "sidik": "1c207e017595eb72edc0019cf21f6d61081879fcc97e9eb5528f24128156cc81"
+        },
+        "koma-123450039-m01-web": {
+          "id": "i-05ccf295a0b123508",
+          "sidik": "03e62e7d6dc3786c5318b5ef56cfdbdcc181402bbf6e10d9a2dca2718352bfae"
+        }
+      },
+      "cek": {
+        "instance_ada": true,
+        "dikelola_kode": true,
+        "tag_pemilik": true,
+        "preset_valid": true,
+        "nama_konvensi": true,
+        "berjalan": true,
+        "tanpa_ip_publik": true,
+        "anggaran_ada": true,
+        "dua_peran": true
       }
     }
   ],
