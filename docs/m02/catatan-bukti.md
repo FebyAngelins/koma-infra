@@ -74,28 +74,28 @@ Apakah jeda 120 detik cukup, dan apa buktinya:
 
 | Hal | Sebelum (2.0.0) | Sesudah (2.1.0) |
 |---|---|---|
-| ID instance api | `i-0b8eff1c29db0b71f` | |
-| IP publik api | 3.27.73.80 | |
-| ID AMI | `ami-04c8c952bb796d41d` (`koma-123450039-m02-api-2.0.0`) | |
+| ID instance api | `i-0b8eff1c29db0b71f` | `i-0b6c3a8069db8e0a0` |
+| IP publik api | 3.27.73.80 | 15.135.90.129 |
+| ID AMI | `ami-04c8c952bb796d41d` (`koma-123450039-m02-api-2.0.0`) | `ami-0808a03b2cea594d9` (`koma-123450039-m02-api-2.1.0`) |
 
 Rantai penggantian 2.0.0 → 2.1.0 (dari `tofu plan`):
 
 | Resource | Simbol aksi | Atribut pemicu (`# forces replacement`) | Resource hulu penyebab |
 |---|---|---|---|
-| `aws_instance.pembangun` | | | |
-| `time_sleep.tunggu_cloud_init` | | | |
-| `aws_ami_from_instance.api` | | | |
-| `aws_instance.api` | | | |
+| `aws_instance.pembangun` | `-/+` | `user_data` (`KOMA_VERSI` dan `Description` berubah 2.0.0 → 2.1.0) | `var.versi` → `local.cloud_init`, ditambah `user_data_replace_on_change = true` |
+| `time_sleep.tunggu_cloud_init` | `-/+` | `triggers` (`instance` → known after apply) | `aws_instance.pembangun` (ID baru) |
+| `aws_ami_from_instance.api` | `-/+` | `name` (`…-api-2.0.0` → `…-api-2.1.0`) dan `source_instance_id` (known after apply) | `var.versi` dan `time_sleep.tunggu_cloud_init` |
+| `aws_instance.api` | `-/+` | `ami` (`ami-04c8c952bb796d41d` → known after apply) | `aws_ami_from_instance.api` (AMI baru) |
 
-Baris `Plan:` :
+Baris `Plan:` : `Plan: 4 to add, 0 to change, 4 to destroy.` (security group dan aturannya tidak berubah)
 
-Resource yang dihapus pertama kali dan akibatnya bagi pengguna API:
+Resource yang dihapus pertama kali dan akibatnya bagi pengguna API: `aws_instance.api` (server 2.0.0) dihapus paling awal karena urutan bawaan "hapus dulu, lalu buat"; pengganti baru dibuat paling akhir setelah pembangun, jeda 120 detik, dan AMI baru selesai, sehingga pengguna API tidak terlayani selama seluruh proses panggang dan IP publiknya berganti.
 
 | Hal | Isi |
 |---|---|
-| Jam mengetik `yes` (WIB) | |
-| Jam `koma sehat` alamat baru SEHAT (WIB) | |
-| **Jeda layanan** | |
+| Jam mengetik `yes` (WIB) | 14:57 |
+| Jam `koma sehat` alamat baru SEHAT (WIB) | sekitar 15:03 |
+| **Jeda layanan** | sekitar 6 menit (14:57 → 15:03); selama itu tidak ada server api yang melayani, dan alamat lama 3.27.73.80 hilang permanen |
 | Waktu panggang versi 2.1.0 | |
 | Waktu siap versi 2.1.0 (`koma sehat`, detik) | |
 | `koma sehat` alamat lama selama apply | |
