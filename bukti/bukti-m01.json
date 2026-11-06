@@ -1,0 +1,280 @@
+{
+  "skema": "koma-bukti/3",
+  "versi_koma": "3.4.0",
+  "nim": "123450039",
+  "kelompok": "k01",
+  "region": "ap-southeast-2",
+  "akun_sidik": "900310cd4973e8a5",
+  "modul": "m01",
+  "dibuat": "2026-11-06T07:26:41Z",
+  "sumber": "lokal",
+  "hasil": [
+    {
+      "id": "instance_ada",
+      "lulus": true,
+      "pesan": "dari potret aktif 2026-11-06T07:22:01Z; kini: 0 instance bertag nim=123450039, modul=m01"
+    },
+    {
+      "id": "dikelola_kode",
+      "lulus": true,
+      "pesan": "dari potret aktif 2026-11-06T07:22:01Z; kini: semua instance bertag managed-by=opentofu"
+    },
+    {
+      "id": "tag_pemilik",
+      "lulus": true,
+      "pesan": "dari potret aktif 2026-11-06T07:22:01Z; kini: tag nim=123450039 dan kelompok=k01"
+    },
+    {
+      "id": "preset_valid",
+      "lulus": true,
+      "pesan": "dari potret aktif 2026-11-06T07:22:01Z; kini: tipe instance t3.micro (kecil) atau t3.small (sedang)"
+    },
+    {
+      "id": "nama_konvensi",
+      "lulus": true,
+      "pesan": "dari potret aktif 2026-11-06T07:22:01Z; kini: tag Name berbentuk koma-123450039-m01-<kunci>"
+    },
+    {
+      "id": "berjalan",
+      "lulus": true,
+      "pesan": "dari potret aktif 2026-11-06T07:22:01Z; kini: state running"
+    },
+    {
+      "id": "tanpa_ip_publik",
+      "lulus": true,
+      "pesan": "dari potret aktif 2026-11-06T07:22:01Z; kini: tidak ada IP publik"
+    },
+    {
+      "id": "anggaran_ada",
+      "lulus": true,
+      "pesan": "dari potret aktif 2026-11-06T07:22:01Z; kini: budget koma-123450039-anggaran ada dengan batas <= USD 50"
+    },
+    {
+      "id": "dua_peran",
+      "lulus": true,
+      "pesan": "dari potret aktif 2026-11-06T07:22:01Z; kini: peran berbeda: []"
+    },
+    {
+      "id": "tanpa_instance_liar",
+      "lulus": true,
+      "pesan": "tidak ada instance tanpa tag managed-by"
+    },
+    {
+      "id": "refaktor_tanpa_ganti",
+      "lulus": true,
+      "pesan": "instance lama dipertahankan saat for_each menambah instance baru (blok moved)"
+    },
+    {
+      "id": "reproducible",
+      "lulus": true,
+      "pesan": "dua potret dengan konfigurasi identik tetapi id instance berbeda"
+    },
+    {
+      "id": "bersih_akhir",
+      "lulus": true,
+      "pesan": "potret terakhir: tidak ada instance m01 (sudah destroy)"
+    }
+  ],
+  "ringkasan": {
+    "latihan_lulus": true,
+    "tugas_lulus": true,
+    "skor_latihan": 1.0
+  },
+  "riwayat": [
+    {
+      "waktu": "2026-11-06T06:02:12Z",
+      "aktif": false,
+      "instance": {},
+      "cek": {
+        "instance_ada": false,
+        "dikelola_kode": false,
+        "tag_pemilik": false,
+        "preset_valid": false,
+        "nama_konvensi": false,
+        "berjalan": false,
+        "tanpa_ip_publik": false,
+        "anggaran_ada": false,
+        "dua_peran": false
+      }
+    },
+    {
+      "waktu": "2026-11-06T06:14:57Z",
+      "aktif": true,
+      "instance": {
+        "koma-123450039-m01-web": {
+          "id": "i-018dae2133d210786",
+          "sidik": "03e62e7d6dc3786c5318b5ef56cfdbdcc181402bbf6e10d9a2dca2718352bfae"
+        }
+      },
+      "cek": {
+        "instance_ada": true,
+        "dikelola_kode": true,
+        "tag_pemilik": true,
+        "preset_valid": true,
+        "nama_konvensi": true,
+        "berjalan": true,
+        "tanpa_ip_publik": false,
+        "anggaran_ada": true,
+        "dua_peran": false
+      }
+    },
+    {
+      "waktu": "2026-11-06T06:39:40Z",
+      "aktif": true,
+      "instance": {
+        "koma-123450039-m01-web": {
+          "id": "i-05ccf295a0b123508",
+          "sidik": "03e62e7d6dc3786c5318b5ef56cfdbdcc181402bbf6e10d9a2dca2718352bfae"
+        }
+      },
+      "cek": {
+        "instance_ada": true,
+        "dikelola_kode": true,
+        "tag_pemilik": true,
+        "preset_valid": true,
+        "nama_konvensi": true,
+        "berjalan": true,
+        "tanpa_ip_publik": true,
+        "anggaran_ada": true,
+        "dua_peran": false
+      }
+    },
+    {
+      "waktu": "2026-11-06T06:47:05Z",
+      "aktif": true,
+      "instance": {
+        "koma-123450039-m01-api": {
+          "id": "i-0d7d80cf929db24ee",
+          "sidik": "1c207e017595eb72edc0019cf21f6d61081879fcc97e9eb5528f24128156cc81"
+        },
+        "koma-123450039-m01-web": {
+          "id": "i-05ccf295a0b123508",
+          "sidik": "03e62e7d6dc3786c5318b5ef56cfdbdcc181402bbf6e10d9a2dca2718352bfae"
+        }
+      },
+      "cek": {
+        "instance_ada": true,
+        "dikelola_kode": true,
+        "tag_pemilik": true,
+        "preset_valid": true,
+        "nama_konvensi": true,
+        "berjalan": true,
+        "tanpa_ip_publik": true,
+        "anggaran_ada": true,
+        "dua_peran": true
+      }
+    },
+    {
+      "waktu": "2026-11-06T06:51:51Z",
+      "aktif": true,
+      "instance": {
+        "koma-123450039-m01-api": {
+          "id": "i-0241a7743e310aecd",
+          "sidik": "1c207e017595eb72edc0019cf21f6d61081879fcc97e9eb5528f24128156cc81"
+        },
+        "koma-123450039-m01-web": {
+          "id": "i-09379a18a1728d275",
+          "sidik": "03e62e7d6dc3786c5318b5ef56cfdbdcc181402bbf6e10d9a2dca2718352bfae"
+        }
+      },
+      "cek": {
+        "instance_ada": true,
+        "dikelola_kode": true,
+        "tag_pemilik": true,
+        "preset_valid": true,
+        "nama_konvensi": true,
+        "berjalan": true,
+        "tanpa_ip_publik": true,
+        "anggaran_ada": true,
+        "dua_peran": true
+      }
+    },
+    {
+      "waktu": "2026-11-06T07:01:43Z",
+      "aktif": true,
+      "instance": {
+        "koma-123450039-m01-api": {
+          "id": "i-0241a7743e310aecd",
+          "sidik": "77c4bb826cca56966acc0af3daa1574e56ebaf01375a425af005b3d2de9c2d86"
+        },
+        "koma-123450039-m01-web": {
+          "id": "i-09379a18a1728d275",
+          "sidik": "03e62e7d6dc3786c5318b5ef56cfdbdcc181402bbf6e10d9a2dca2718352bfae"
+        }
+      },
+      "cek": {
+        "instance_ada": true,
+        "dikelola_kode": true,
+        "tag_pemilik": true,
+        "preset_valid": true,
+        "nama_konvensi": true,
+        "berjalan": true,
+        "tanpa_ip_publik": true,
+        "anggaran_ada": true,
+        "dua_peran": true
+      }
+    },
+    {
+      "waktu": "2026-11-06T07:16:41Z",
+      "aktif": false,
+      "instance": {},
+      "cek": {
+        "instance_ada": false,
+        "dikelola_kode": false,
+        "tag_pemilik": false,
+        "preset_valid": false,
+        "nama_konvensi": false,
+        "berjalan": false,
+        "tanpa_ip_publik": false,
+        "anggaran_ada": true,
+        "dua_peran": false
+      }
+    },
+    {
+      "waktu": "2026-11-06T07:22:01Z",
+      "aktif": true,
+      "instance": {
+        "koma-123450039-m01-notif-worker": {
+          "id": "i-04ca85b74522200a4",
+          "sidik": "8671af82becf452ade1d7802e602cf8310d784ad1947ff5bdee497d871bc7396"
+        },
+        "koma-123450039-m01-portal": {
+          "id": "i-08a49c05fc032899b",
+          "sidik": "3b9fde444ea47e7d9d63bcc5de2322ca4308b700f58c1ad33c364841b763abf3"
+        },
+        "koma-123450039-m01-rme-api": {
+          "id": "i-0c898a87503b21673",
+          "sidik": "2a5a1de63f96702700ab090a617364d175bef4c4bd15f41bdcbb2c50a5ae5239"
+        }
+      },
+      "cek": {
+        "instance_ada": true,
+        "dikelola_kode": true,
+        "tag_pemilik": true,
+        "preset_valid": true,
+        "nama_konvensi": true,
+        "berjalan": true,
+        "tanpa_ip_publik": true,
+        "anggaran_ada": true,
+        "dua_peran": true
+      }
+    },
+    {
+      "waktu": "2026-11-06T07:26:41Z",
+      "aktif": false,
+      "instance": {},
+      "cek": {
+        "instance_ada": false,
+        "dikelola_kode": false,
+        "tag_pemilik": false,
+        "preset_valid": false,
+        "nama_konvensi": false,
+        "berjalan": false,
+        "tanpa_ip_publik": false,
+        "anggaran_ada": true,
+        "dua_peran": false
+      }
+    }
+  ],
+  "tanda_tangan": null
+}
