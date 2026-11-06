@@ -5,10 +5,10 @@ Waktu ditulis dalam WIB. ID instance disalin dari terminal (`i-0…`); jangan me
 
 | Hal | Isi |
 |---|---|
-| Nama | |
-| NIM | |
-| Kelompok | `k0_` |
-| Kasus | |
+| Nama | Feby Angelina |
+| NIM | 123450039 |
+| Kelompok | `k01` |
+| Kasus | Klinik Sehat Lampung |
 
 ## Log langkah
 
@@ -29,6 +29,28 @@ Waktu ditulis dalam WIB. ID instance disalin dari terminal (`i-0…`); jangan me
 | E.1 Destroy + potret 6 | | `tofu destroy`, `koma cek m01`, `koma sisa` | |
 | Tugas: katalog kasus | | `tofu apply`, `koma cek m01` | |
 | Tugas: destroy akhir | | `tofu destroy`, `koma cek m01` | |
+
+## Dugaan Pre-lab (Langkah 5)
+
+Dugaan sebelum praktikum: berapa langkah, berapa lama, dan siapa yang mengerjakan bila saya
+"meminta satu server" di pusat data kampus.
+
+| No | Langkah | Dikerjakan oleh | Perkiraan waktu |
+|---|---|---|---|
+| 1 | Menulis permintaan (spesifikasi CPU, RAM, disk, OS, kegunaan) | Mahasiswa/dosen pemohon | 30 menit |
+| 2 | Mengajukan surat atau tiket ke UPT TIK | Pemohon | 1 hari |
+| 3 | Persetujuan kaprodi atau pimpinan unit | Kaprodi / pimpinan | 1–3 hari |
+| 4 | Pengecekan kapasitas host, rak, dan kuota | Admin UPT TIK | 1–2 hari |
+| 5 | Membuat VM di hypervisor (atau membeli server bila kapasitas habis) | Admin server | 1 hari (berminggu-minggu bila beli) |
+| 6 | Memasang sistem operasi dan pembaruan | Admin server | 2–4 jam |
+| 7 | Mengatur jaringan: IP, VLAN, firewall | Admin jaringan | 1 hari |
+| 8 | Membuat akun dan memberi akses ke pemohon | Admin server | 1 jam |
+| 9 | Serah terima dan uji akses | Admin dan pemohon | 1 jam |
+
+Dugaan total: sekitar 9 langkah, melibatkan 3–4 pihak, dan memakan 1–2 minggu kerja bila
+kapasitas tersedia (bisa lebih dari sebulan bila harus membeli perangkat). Sebagian besar waktu
+habis untuk menunggu persetujuan dan antrean, bukan untuk pekerjaan teknisnya. Keputusan
+teknis (ukuran, OS, jaringan) hanya tercatat di tiket dan ingatan admin.
 
 ## Catatan Bagian A
 
