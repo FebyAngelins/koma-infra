@@ -26,7 +26,7 @@ Satu baris per `koma cek m02`. Potret terakhir sebelum mengumpulkan harus potret
 | 1 | C.4.5 | api 2.0.0 dari AMI 2.0.0 | 06-11-2026 14:52 | `Latihan lulus: True`, `Tugas lulus: False`; 11/13 LULUS, gagal `immutable` dan `bersih_akhir` |
 | 2 | D.4 | api 2.1.0, ID baru | 06-11-2026 15:06 | `immutable` LULUS; hanya `bersih_akhir` GAGAL; `Latihan lulus: True` |
 | 3 | Latihan 2.1 | api 2.1.0 + server goreng | 06-11-2026 15:14 | 3 instance aktif (api, pembangun, goreng `http://15.135.214.5`); `Latihan lulus: True`, hanya `bersih_akhir` GAGAL |
-| 4 | E.2.2 | bersih setelah `tofu destroy` | | |
+| 4 | E.2.2 | bersih setelah `tofu destroy` | 06-11-2026 15:23 | potret kosong, 13/13 LULUS; `Latihan lulus: True`, `Tugas lulus: True` |
 | 5 | Tugas Langkah 2 | rilis kasus `<versi>` | | |
 | 6 | Tugas Langkah 3 | bersih lagi | | |
 
@@ -104,10 +104,10 @@ Resource yang dihapus pertama kali dan akibatnya bagi pengguna API: `aws_instanc
 
 | Hal | Isi |
 |---|---|
-| Ringkasan `tofu destroy` (jumlah resource) | |
-| `describe-images --owners self` setelah destroy | |
-| `koma sisa`: resource bertag, instance tanpa `managed-by`, snapshot sisa AMI | |
-| `bersih_akhir` dan `Tugas lulus` pada potret 4 | |
+| Ringkasan `tofu destroy` (jumlah resource) | 6 resource (pembangun, jeda, AMI, security group, aturan masuk, api); percobaan pertama tidak jalan karena dua perintah tersalin menempel (`destroycd`) |
+| `describe-images --owners self` setelah destroy | kosong; AMI `ami-0808a03b2cea594d9` sudah dideregistrasi |
+| `koma sisa`: resource bertag, instance tanpa `managed-by`, snapshot sisa AMI | 25 resource bertag (instance dan volume yang baru di-terminate, hilang sendiri sekitar 1 jam); instance tanpa `managed-by`: 0; snapshot sisa AMI: 0 |
+| `bersih_akhir` dan `Tugas lulus` pada potret 4 | `bersih_akhir` LULUS, `Tugas lulus: True` (potret 4, 2026-11-06T08:23:28Z) |
 
 ## Catatan Tugas
 
