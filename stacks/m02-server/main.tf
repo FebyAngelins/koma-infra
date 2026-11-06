@@ -42,6 +42,13 @@ resource "aws_instance" "pembangun" {
     peran = "pembangun"
     versi = var.versi
   }
+
+  # Di akun ini subnet bawaan memberi IP publik otomatis (MapPublicIpOnLaunch = true) dan
+  # nilai associate_public_ip_address dari kode tidak dihormati provider. Tanpa baris ini,
+  # setiap plan melihat drift true -> false dan memaksa seluruh rantai panggang diganti.
+  lifecycle {
+    ignore_changes = [associate_public_ip_address]
+  }
 }
 
 # B.2 Instance "running" belum berarti cloud-init selesai; beri jeda sebelum memotret disk.

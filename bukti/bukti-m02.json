@@ -6,7 +6,7 @@
   "region": "ap-southeast-2",
   "akun_sidik": "900310cd4973e8a5",
   "modul": "m02",
-  "dibuat": "2026-11-06T08:06:34Z",
+  "dibuat": "2026-11-06T08:14:40Z",
   "sumber": "lokal",
   "hasil": [
     {
@@ -123,6 +123,45 @@
         "koma-123450039-m02-api": {
           "id": "i-0b6c3a8069db8e0a0",
           "sidik": "aee9e090cfba69f157d0250da9a299338eb684a8ae8562ab3014e45de799228a"
+        },
+        "koma-123450039-m02-pembangun": {
+          "id": "i-0c05542ca1bdddfbc",
+          "sidik": "88af65984d0c155dc8ce23c656f42503089de07a70f089200a0e45d8677d3f48"
+        }
+      },
+      "image": [
+        "koma-123450039-m02-api-2.1.0"
+      ],
+      "api": {
+        "id": "i-0b6c3a8069db8e0a0",
+        "versi": "2.1.0",
+        "versi_http": "2.1.0"
+      },
+      "yatim": 0,
+      "cek": {
+        "instance_ada": true,
+        "dikelola_kode": true,
+        "tag_pemilik": true,
+        "image_terbit": true,
+        "api_dari_image": true,
+        "api_sehat": true,
+        "pembangun_dari_publik": true,
+        "versi_cocok": true,
+        "sg_terbatas": true,
+        "nama_konvensi": true
+      }
+    },
+    {
+      "waktu": "2026-11-06T08:14:40Z",
+      "aktif": true,
+      "instance": {
+        "koma-123450039-m02-api": {
+          "id": "i-0b6c3a8069db8e0a0",
+          "sidik": "aee9e090cfba69f157d0250da9a299338eb684a8ae8562ab3014e45de799228a"
+        },
+        "koma-123450039-m02-goreng": {
+          "id": "i-0c4efe4e8b13ffd91",
+          "sidik": "a5946d99ae6ca263270e52e7c2ed55956d0c54cc8deacc385cbe4c209e483529"
         },
         "koma-123450039-m02-pembangun": {
           "id": "i-0c05542ca1bdddfbc",

@@ -24,7 +24,7 @@ Satu baris per `koma cek m02`. Potret terakhir sebelum mengumpulkan harus potret
 | Potret | Langkah | Keadaan | Waktu (WIB) | Hasil penting (`Latihan lulus` / `Tugas lulus`, cek yang gagal) |
 |---|---|---|---|---|
 | 1 | C.4.5 | api 2.0.0 dari AMI 2.0.0 | 06-11-2026 14:52 | `Latihan lulus: True`, `Tugas lulus: False`; 11/13 LULUS, gagal `immutable` dan `bersih_akhir` |
-| 2 | D.4 | api 2.1.0, ID baru | | |
+| 2 | D.4 | api 2.1.0, ID baru | 06-11-2026 15:06 | `immutable` LULUS; hanya `bersih_akhir` GAGAL; `Latihan lulus: True` |
 | 3 | Latihan 2.1 | api 2.1.0 + server goreng | | |
 | 4 | E.2.2 | bersih setelah `tofu destroy` | | |
 | 5 | Tugas Langkah 2 | rilis kasus `<versi>` | | |
