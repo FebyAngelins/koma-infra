@@ -67,8 +67,8 @@ Apakah jeda 120 detik cukup, dan apa buktinya:
 | `aws_instance.api` Creation complete | |
 | **Waktu siap** dari `koma sehat` (detik) | |
 | Jawaban `/versi` (versi dan host) | |
-| Aturan masuk security group | |
-| Isi `keluar` (IpPermissionsEgress) security group | |
+| Aturan masuk security group | satu aturan: TCP 80 dari `103.211.143.235/32` ("HTTP dari IP praktikan") |
+| Isi `keluar` (IpPermissionsEgress) security group | `[]` (kosong): aturan keluar bawaan dicabut provider, sehingga server tidak bisa mengunduh apa pun keluar |
 
 ## Catatan Bagian D
 
