@@ -16,9 +16,9 @@ Waktu ditulis dalam WIB. ID instance disalin dari terminal (`i-0…`); jangan me
 |---|---|---|---|
 | A.1 Konsol | 06-11-2026 12:59 | (konsol EC2) | `coba-konsol` `i-0d98afe3fcbca3d86` running |
 | A.2 CLI dua kali | 06-11-2026 13:00 | `aws ec2 run-instances …` | dua `coba-cli`: `i-0aaecc5d9b7721705`, `i-0aa4d93233d5e29e2` |
-| A.3 Cek + bongkar | | `koma cek m01`, `aws ec2 terminate-instances …` | |
-| B.1 Anggaran | | `tofu apply m00.tfplan` | |
-| B.4 Apply pertama | | `tofu apply m01.tfplan` | |
+| A.3 Cek + bongkar | 06-11-2026 13:03 | `koma cek m01`, `aws ec2 terminate-instances …` | potret 1 kosong, semua cek GAGAL; tiga instance Bagian A di-terminate |
+| B.1 Anggaran | 06-11-2026 13:08 | `tofu apply m00.tfplan` | budget `koma-123450039-anggaran` USD 50 dibuat |
+| B.4 Apply pertama | 06-11-2026 13:14 | `tofu apply m01.tfplan` | `Plan: 1 to add`; `web` `i-018dae2133d210786`, IP privat 172.31.27.176, selesai dalam 18 detik. Ternyata mendapat IP publik 13.211.39.50 karena ketiga subnet bawaan `MapPublicIpOnLaunch = True`; subnet diubah ke `False` (`aws ec2 modify-subnet-attribute --no-map-public-ip-on-launch`), lalu 13:38 `tofu apply -replace=aws_instance.web` → `web` baru `i-05ccf295a0b123508`, IP privat 172.31.24.65 |
 | B.5 Potret 2 | | `koma cek m01` | |
 | C.1 Plan kedua | | `tofu plan -detailed-exitcode` | |
 | C.3 Refaktor | | `tofu apply m01.tfplan` | |
@@ -68,7 +68,7 @@ teknis (ukuran, OS, jaringan) hanya tercatat di tiket dan ingatan admin.
   - Disk root 8 GiB gp3, tidak dienkripsi (bawaan)
   - Tag hanya `Name`; tidak ada tag pemilik, modul, atau `managed-by`
   - Di CLI: perintah yang sama dijalankan dua kali menghasilkan dua server bernama sama
-- Semua instance Bagian A sudah di-terminate (bukti: `describe-instances` kosong; `tanpa_instance_liar` lulus pada potret …): ya / belum
+- Semua instance Bagian A sudah di-terminate (bukti: `describe-instances` kosong; `tanpa_instance_liar` lulus pada potret 2): ya
 
 ## Catatan Bagian D
 
