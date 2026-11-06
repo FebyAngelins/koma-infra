@@ -113,8 +113,8 @@ disetujui.
 
 ## L.4 — Bukti
 
-- Waktu `koma cek m01` (WIB):
-- Nomor potret:
-- `Latihan lulus` di keluaran `koma cek`:
+- Waktu `koma cek m01` (WIB): 06-11-2026 14:01:43 (`2026-11-06T07:01:43Z`)
+- Nomor potret: 6 (aktif, 2 instance)
+- `Latihan lulus` di keluaran `koma cek`: `True`
 - Tipe instance `api` setelah apply (dari `tofu output instance`): `t3.small`, ID tetap `i-0241a7743e310aecd`, IP privat tetap 172.31.30.170; `Modifications complete after 38s` (lama `api` dihentikan dan dinyalakan ulang)
 - Plan sesudah apply berakhir `exit code = 0` (`No changes. Your infrastructure matches the configuration.`)
