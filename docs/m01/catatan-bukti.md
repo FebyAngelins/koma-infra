@@ -25,7 +25,7 @@ Waktu ditulis dalam WIB. ID instance disalin dari terminal (`i-0…`); jangan me
 | C.4 Potret 4 | 06-11-2026 13:47 | `koma cek m01` | `dua_peran` dan `refaktor_tanpa_ganti` LULUS; tinggal `bersih_akhir` GAGAL |
 | D.1 Destroy + apply | 06-11-2026 13:49–13:52 | `tofu destroy`, `tofu apply` | destroy pertama terputus `RequestExpired` (kredensial habis), diulang setelah login: `0 destroyed` karena instance sudah terhapus; apply ulang `Plan: 2 to add` |
 | D.1 Potret 5 | 06-11-2026 13:52 | `koma cek m01` | `reproducible` LULUS; tinggal `bersih_akhir` GAGAL |
-| Latihan L.4 (potret 5) | | `tofu apply`, `koma cek m01` | |
+| Latihan L.4 | 06-11-2026 14:00 | `tofu apply`, `koma cek m01` | `api` `t3.micro` → `t3.small` in-place dalam 38 detik, ID tetap; plan sesudahnya `exit code = 0` |
 | E.1 Destroy + potret 6 | | `tofu destroy`, `koma cek m01`, `koma sisa` | |
 | Tugas: katalog kasus | | `tofu apply`, `koma cek m01` | |
 | Tugas: destroy akhir | | `tofu destroy`, `koma cek m01` | |
