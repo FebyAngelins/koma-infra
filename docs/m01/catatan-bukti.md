@@ -19,10 +19,10 @@ Waktu ditulis dalam WIB. ID instance disalin dari terminal (`i-0…`); jangan me
 | A.3 Cek + bongkar | 06-11-2026 13:03 | `koma cek m01`, `aws ec2 terminate-instances …` | potret 1 kosong, semua cek GAGAL; tiga instance Bagian A di-terminate |
 | B.1 Anggaran | 06-11-2026 13:08 | `tofu apply m00.tfplan` | budget `koma-123450039-anggaran` USD 50 dibuat |
 | B.4 Apply pertama | 06-11-2026 13:14 | `tofu apply m01.tfplan` | `Plan: 1 to add`; `web` `i-018dae2133d210786`, IP privat 172.31.27.176, selesai dalam 18 detik. Ternyata mendapat IP publik 13.211.39.50 karena ketiga subnet bawaan `MapPublicIpOnLaunch = True`; subnet diubah ke `False` (`aws ec2 modify-subnet-attribute --no-map-public-ip-on-launch`), lalu 13:38 `tofu apply -replace=aws_instance.web` → `web` baru `i-05ccf295a0b123508`, IP privat 172.31.24.65 |
-| B.5 Potret 2 | | `koma cek m01` | |
+| B.5 Potret 2–3 | 06-11-2026 13:15 / 13:39 | `koma cek m01` | potret 2: `tanpa_ip_publik` GAGAL (IP publik); potret 3 setelah replace: semua cek Latihan LULUS, `Latihan lulus: True` |
 | C.1 Plan kedua | 06-11-2026 13:43 | `tofu plan -detailed-exitcode` | `No changes`; `exit code = 0` (idempoten) |
-| C.3 Refaktor | | `tofu apply m01.tfplan` | |
-| C.4 Potret 3 | | `koma cek m01` | |
+| C.3 Refaktor | 06-11-2026 13:46 | `tofu apply m01.tfplan` | `aws_instance.web has moved to aws_instance.layanan["web"]` (ID `i-05ccf295a0b123508` tetap); `api` dibuat; `Plan: 1 to add, 0 to change, 0 to destroy` |
+| C.4 Potret 4 | 06-11-2026 13:47 | `koma cek m01` | `dua_peran` dan `refaktor_tanpa_ganti` LULUS; tinggal `bersih_akhir` GAGAL |
 | D.1 Destroy + apply | | `tofu destroy`, `tofu apply` | |
 | D.1 Potret 4 | | `koma cek m01` | |
 | Latihan L.4 (potret 5) | | `tofu apply`, `koma cek m01` | |
