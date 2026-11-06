@@ -354,6 +354,72 @@ def cmd_beban(a) -> int:
     return 0
 
 
+def cmd_kirim(a) -> int:
+    api, ident = _api_dan_ident()
+    nama = f"koma-{ident['nim']}-m07-{a.lingkungan}-pesanan"
+    topik = next((t for t in kumpul.topik_awalan(api, nama) if t["nama"] == nama), None)
+    if not topik:
+        raise Galat(f"Topik {nama} belum ada. Terapkan stack m07-integrasi untuk lingkungan {a.lingkungan} dulu.")
+    cap = time.strftime("%Y%m%d%H%M%S", time.gmtime())
+    gerai = ("G-01", "G-02", "G-03", "G-04")
+    pesan = [{"id_pesanan": f"P-{cap}-{i:03d}", "gerai": gerai[i % len(gerai)], "total": 25000 + 1500 * i,
+              "dibuat": sekarang()} for i in range(1, a.jumlah + 1)]
+    pesan += [{"gerai": "G-99", "total": 0, "dibuat": sekarang(), "catatan": "sengaja rusak: tanpa id_pesanan"}
+              for _ in range(a.rusak)]
+    terkirim = []
+    for p in pesan:
+        r = api.panggil("sns", "publish", "--topic-arn", topik["arn"], "--message", json.dumps(p))
+        terkirim.append({"id_pesanan": p.get("id_pesanan"), "message_id": r.get("MessageId")})
+    _cetak(f"Terkirim ke {nama}: {a.jumlah} pesanan sah, {a.rusak} pesan rusak.")
+    for t in terkirim:
+        _cetak(f"  {t['id_pesanan'] or '(rusak)':<24} {t['message_id']}")
+    path = _tulis_koma("kirim-m07.json", {"lingkungan": a.lingkungan, "sah": a.jumlah, "rusak": a.rusak,
+                                         "pesan": terkirim})
+    _cetak(f"Ringkasan: {path.relative_to(AKAR)}. Objek muncul di arsip/<tanggal>/ dalam beberapa detik;"
+           " pesan rusak kembali ke antrean tiap 30 detik (prod: pindah ke DLQ setelah 3 kali).")
+    return 0
+
+
+def _jenis_arn(arn: str) -> str:
+    """arn:aws:lambda:…:function:x -> lambda/function; arn:aws:sns:…:x -> sns; arn:aws:s3:::b -> s3."""
+    bagian = arn.split(":", 5)
+    if len(bagian) < 6:
+        return arn
+    sisa = bagian[5]
+    if ":" in sisa:
+        return f"{bagian[2]}/{sisa.split(':', 1)[0]}"
+    if "/" in sisa:
+        return f"{bagian[2]}/{sisa.split('/', 1)[0]}"
+    return bagian[2]
+
+
+def cmd_showback(a) -> int:
+    api, ident = _api_dan_ident()
+    r = api.panggil("resourcegroupstaggingapi", "get-resources", "--tag-filters", f"Key=nim,Values={ident['nim']}")
+    baris: dict[tuple, dict[str, int]] = {}
+    tanpa = []
+    for x in r.get("ResourceTagMappingList", []):
+        tags = {t["Key"]: t["Value"] for t in x.get("Tags", [])}
+        if a.modul != "semua" and tags.get("modul") != a.modul:
+            continue
+        arn = x.get("ResourceARN", "")
+        jenis = _jenis_arn(arn)
+        if not tags.get("cost-center"):
+            tanpa.append(f"{arn} (modul {tags.get('modul', '-')})")
+            continue
+        kunci = (tags.get("lingkungan", "-"), tags["cost-center"], tags.get("data-class", "-"))
+        baris.setdefault(kunci, {})
+        baris[kunci][jenis] = baris[kunci].get(jenis, 0) + 1
+    _cetak(f"Showback NIM {ident['nim']}, modul {a.modul} (Resource Groups Tagging API; role IAM tidak terbaca)")
+    _cetak(f"{'lingkungan':<11}{'cost-center':<13}{'data-class':<12}resource")
+    for (env, cc, kelas), isi in sorted(baris.items()):
+        _cetak(f"{env:<11}{cc:<13}{kelas:<12}" + ", ".join(f"{n} {j}" for j, n in sorted(isi.items())))
+    _cetak(f"Tak bertuan (tanpa cost-center): {len(tanpa)}")
+    for x in tanpa:
+        _cetak(f"  {x}")
+    return 0
+
+
 def buat_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(prog="koma", description=f"Alat praktikum Komputasi Awan (versi {VERSI}).")
     sub = ap.add_subparsers(dest="perintah", required=True)
@@ -396,6 +462,14 @@ def buat_parser() -> argparse.ArgumentParser:
     p.add_argument("--paralel", type=int, default=4)
     p.add_argument("--modul", default="m06")
     p.set_defaults(fn=cmd_beban)
+    p = sub.add_parser("kirim", help="M07: terbitkan pesanan sintetis ke topik lingkungan dev/prod")
+    p.add_argument("lingkungan", choices=["dev", "prod"])
+    p.add_argument("--jumlah", type=int, default=5)
+    p.add_argument("--rusak", type=int, default=0, help="tambah N pesan tanpa id_pesanan (berakhir di DLQ prod)")
+    p.set_defaults(fn=cmd_kirim)
+    p = sub.add_parser("showback", help="M07: resource bertag dikelompokkan per lingkungan dan cost-center")
+    p.add_argument("modul", nargs="?", default="m07", help="modul (bawaan m07) atau 'semua'")
+    p.set_defaults(fn=cmd_showback)
     p = sub.add_parser("arsip", help="buat koma-module-NN.zip dari tag mNN")
     p.add_argument("modul")
     p.set_defaults(fn=cmd_arsip)
