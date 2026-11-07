@@ -38,18 +38,18 @@ Satu baris per `koma cek m03`. Potret terakhir sebelum mengumpulkan harus potret
 
 | Hal | Isi |
 |---|---|
-| AZ yang dipakai (nama dan Zone ID) | |
-| `cidrsubnet(var.cidr_vpc, 8, 0)` | |
-| `cidrsubnet(var.cidr_vpc, 8, 11)` | |
-| `cidrhost(cidrsubnet(var.cidr_vpc, 8, 10), 4)` dan mengapa bukan `.1` | |
-| Ringkasan plan stack jaringan (`Plan: …`) | |
-| `vpc_id` | |
-| Subnet: nama, CIDR, AZ (empat baris) | |
-| Rute di `rt-publik` (dari A.6.2) | |
-| Rute di `rt-privat` (dari A.6.2) | |
-| Plan kedua (A.6.3) | |
+| AZ yang dipakai (nama dan Zone ID) | `ap-southeast-2a` (`apse2-az1`) dan `ap-southeast-2b` (`apse2-az3`); `ap-southeast-2c` (`apse2-az2`) tersedia tetapi tidak dipakai |
+| `cidrsubnet(var.cidr_vpc, 8, 0)` | `10.30.0.0/24` (publik-a) |
+| `cidrsubnet(var.cidr_vpc, 8, 11)` | `10.30.11.0/24` (privat-b) |
+| `cidrhost(cidrsubnet(var.cidr_vpc, 8, 10), 4)` dan mengapa bukan `.1` | `10.30.10.4`; `.0` alamat jaringan, `.1` router VPC, `.2` resolver DNS Amazon, `.3` cadangan AWS, jadi host pertama yang dapat dipakai `.4` |
+| Ringkasan plan stack jaringan (`Plan: …`) | `Plan: 13 to add, 0 to change, 0 to destroy.` (VPC, SG bawaan, IGW, 4 subnet, 2 route table, 4 asosiasi) |
+| `vpc_id` | `vpc-091399dd3abd41d73` (`cidr_vpc = 10.30.0.0/16`); apply `13 added` |
+| Subnet: nama, CIDR, AZ (empat baris) | publik-a `subnet-0011d5b24fb2b3f7b` 10.30.0.0/24 ap-southeast-2a; publik-b `subnet-0c581836537f98318` 10.30.1.0/24 ap-southeast-2b; privat-a `subnet-08ec39adccae064d3` 10.30.10.0/24 ap-southeast-2a; privat-b `subnet-04a0543dd816c7036` 10.30.11.0/24 ap-southeast-2b |
+| Rute di `rt-publik` (dari A.6.2) | `10.30.0.0/16 → local` dan `0.0.0.0/0 → igw-07a5615192db708f9`; subnet publik-a dan publik-b |
+| Rute di `rt-privat` (dari A.6.2) | hanya `10.30.0.0/16 → local` (tanpa rute keluar, tanpa NAT); subnet privat-a dan privat-b |
+| Plan kedua (A.6.3) | `No changes. Your infrastructure matches the configuration.` |
 
-Mengapa subnet `privat-a` disebut privat walaupun ia berada di VPC yang sama dengan IGW (satu kalimat, rujuk Kumar & Singh, 2025, hlm. 232):
+Mengapa subnet `privat-a` disebut privat walaupun ia berada di VPC yang sama dengan IGW (satu kalimat, rujuk Kumar & Singh, 2025, hlm. 232): karena route table-nya tidak punya rute `0.0.0.0/0` ke IGW, dan menurut Kumar & Singh (2025, hlm. 232) satu-satunya pembeda subnet publik dan privat adalah ada tidaknya rute langsung ke IGW, bukan nama subnet atau keberadaan IGW di VPC.
 
 ## Catatan Bagian B
 
