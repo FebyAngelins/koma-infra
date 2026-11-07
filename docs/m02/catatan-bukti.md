@@ -113,12 +113,12 @@ Resource yang dihapus pertama kali dan akibatnya bagi pengguna API: `aws_instanc
 
 | Hal | Isi |
 |---|---|
-| Versi rilis kasus dan alasannya (rujuk `K-02-*`) | |
-| Ukuran server api (`t3.micro`/`t3.small`) dan alasannya | |
-| ID AMI publik yang dipakai saat Tugas | |
-| Waktu panggang | |
-| Waktu siap (`koma sehat`, detik) | |
-| ID instance api rilis kasus | |
-| Jawaban `/versi` | |
+| Versi rilis kasus dan alasannya (rujuk `K-02-*`) | `2.2.0`: rilis fitur pertama untuk KSL yang kompatibel dengan 2.1.0, sehingga MINOR naik (K-02-001) |
+| Ukuran server api (`t3.micro`/`t3.small`) dan alasannya | `t3.small`: E4 SLA 99,95% dan E5 p95 < 500 ms; latensi Lampung–Sydney sekitar 100–150 ms sudah memakan sebagian target, sehingga butuh memori dan kinerja dasar CPU dua kali t3.micro (K-02-002) |
+| ID AMI publik yang dipakai saat Tugas | `ami-062900c135ab91582` (al2023 kernel-6.18, sama dengan di kelas) |
+| Waktu panggang | tidak tercatat per resource (baris `Creation complete` tidak tersimpan); apply 6 resource selesai dalam beberapa menit, AMI hasilnya `ami-0801e67215d14e784` (`koma-123450039-m02-api-2.2.0`) |
+| Waktu siap (`koma sehat`, detik) | 0,2 detik setelah perintah dijalankan; server api pengganti (`-replace`) sudah sehat sebelum `koma sehat` mulai, sehingga waktu siap nyata ≈ waktu `Creation complete` instance (di bawah satu menit) |
+| ID instance api rilis kasus | `i-095b9b2e4bb71543e` (potret 5, `http://16.178.57.245`), lalu diganti `-replace` menjadi `i-074e8d41a227c0c52` (potret 6, `http://3.26.35.158`) untuk mengukur waktu siap |
+| Jawaban `/versi` | `{"versi": "2.2.0", "peran": "api", "host": "ip-172-31-46-198.ap-southeast-2.compute.internal"}` |
 | Tautan *pull request* `modul-02` → `main` | |
 | NIM peninjau dan tanggal persetujuan | |
