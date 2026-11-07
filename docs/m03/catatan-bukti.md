@@ -15,10 +15,10 @@ Isi berkas ini sambil mengerjakan prosedur. Angka, ID, dan alamat disalin dari k
 | Hal | Isi |
 |---|---|
 | `role_arn` stack `m00-verifier` (ganti 12 digit akun dengan `<akun>`) | `arn:aws:iam::<akun>:role/koma-verifier-ro` |
-| `koma info` menampilkan URL verifier (ya/belum) | |
+| `koma info` menampilkan URL verifier (ya/belum) | belum (nilai verifier dari dosen belum diterima) |
 | Kuota vCPU (`L-1216C47A`) | 16 |
 | `jumlah_web` yang dipakai di kelas dan alasannya | 2: kuota 16 vCPU cukup untuk 3 × t3.micro (6 vCPU) |
-| `cidr_saya` (keluaran `koma ip`) | |
+| `cidr_saya` (keluaran `koma ip`) | `103.126.172.221/32` (sesi 7 Nov 2026) |
 
 ## Langkah dan bukti
 
@@ -57,20 +57,20 @@ Matriks konektivitas: isi kolom "Harapan pre-lab" sebelum sesi, kolom lain setel
 
 | Asal → tujuan:port | Harapan pre-lab | Aturan di kode (nama resource) | Tercatat di AWS (B.3.2) |
 |---|---|---|---|
-| laptop (`/32`) → alb:80 | buka | `alb_dari_saya` (cidr `103.126.172.221/32`) | |
-| internet lain → alb:80 | tutup | tidak ada aturan (hanya /32) | |
-| alb → web:80 | buka | `alb_ke_web` (keluar) + `web_dari_alb` (masuk) | |
-| alb → db:5432 | tutup | tidak ada aturan | |
-| web → db:5432 | buka | `web_ke_db` (keluar) + `db_dari_web` (masuk) | |
-| web → web:80 | tutup (dugaan awal: buka, karena satu subnet/segmen) | tidak ada aturan; SG web hanya menerima dari SG alb | |
-| db → web:80 | tutup | tidak ada aturan; SG db tanpa aturan keluar | |
-| internet → web:80 / db:5432 | tutup | tidak ada aturan; server tanpa IP publik, subnet privat tanpa rute keluar | |
+| laptop (`/32`) → alb:80 | buka | `alb_dari_saya` (cidr `103.126.172.221/32`) | alb masuk 80 dari `103.126.172.221/32` |
+| internet lain → alb:80 | tutup | tidak ada aturan (hanya /32) | tidak ada CIDR lain di SG alb |
+| alb → web:80 | buka | `alb_ke_web` (keluar) + `web_dari_alb` (masuk) | alb keluar 80 → `sg-09466fd15d74b1e3a`; web masuk 80 dari `sg-0e1d159735142c6b3` |
+| alb → db:5432 | tutup | tidak ada aturan | db hanya menerima dari `sg-09466fd15d74b1e3a` (web) |
+| web → db:5432 | buka | `web_ke_db` (keluar) + `db_dari_web` (masuk) | web keluar 5432 → `sg-0863ad2dd7623ac6d`; db masuk 5432 dari `sg-09466fd15d74b1e3a` |
+| web → web:80 | tutup (dugaan awal: buka, karena satu subnet/segmen) | tidak ada aturan; SG web hanya menerima dari SG alb | sumber masuk web hanya `sg-0e1d159735142c6b3` |
+| db → web:80 | tutup | tidak ada aturan; SG db tanpa aturan keluar | db `keluar: []` |
+| internet → web:80 / db:5432 | tutup | tidak ada aturan; server tanpa IP publik, subnet privat tanpa rute keluar | tidak ada `0.0.0.0/0` di ketiga SG |
 
 | Hal | Isi |
 |---|---|
 | Ringkasan plan stack aplikasi di B.3.1 | `Plan: 8 to add, 0 to change, 0 to destroy.` (3 SG + 5 aturan; dijalankan dengan `-target` agar server dan ALB belum ikut dibuat) |
 | ID security group alb, web, db | alb `sg-0e1d159735142c6b3`, web `sg-09466fd15d74b1e3a`, db `sg-0863ad2dd7623ac6d` |
-| Isi `keluar` security group db | |
+| Isi `keluar` security group db | `[]` (kosong): db tidak dapat membuka koneksi ke mana pun |
 
 Jalur mana yang dugaan pre-lab Anda berbeda dengan kode, dan mengapa: `web → web:80`. Saya semula mengira dua server web di tier yang sama otomatis bisa saling menjangkau seperti di jaringan flat (E7 KSL: satu segmen server). Di kode, SG web hanya menerima dari SG alb, jadi server web yang disusupi tidak dapat melompat ke saudaranya walaupun keduanya memakai SG yang sama.
 
