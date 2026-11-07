@@ -96,7 +96,7 @@ resource "aws_vpc_security_group_ingress_rule" "http_saya" {
 # C.2 Server api: dari AMI sendiri, tanpa user_data. Ganti versi -> AMI baru -> instance baru.
 resource "aws_instance" "api" {
   ami                         = aws_ami_from_instance.api.id
-  instance_type               = "t3.micro"
+  instance_type               = "t3.small" # rilis kasus KSL: E4 99,95%, E5 p95 < 500 ms (lihat K-02-002)
   associate_public_ip_address = true
   vpc_security_group_ids      = [aws_security_group.api.id]
 

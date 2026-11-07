@@ -53,9 +53,9 @@ Waktu siap diukur dengan `koma sehat` yang dijalankan segera setelah apply seles
 
 | Server | Sumber AMI | "Creation complete" | `koma sehat` (detik) | Total sampai sehat | Jawaban `/versi` |
 |---|---|---|---|---|---|
-| api 2.0.0 (C.4) | AMI milik sendiri (`ami-04c8c952bb796d41d`) | 18 dtk | … | … | `2.0.0` |
-| api 2.1.0 (D.3) | AMI milik sendiri (`ami-0808a03b2cea594d9`) | … | … | … | `2.1.0` |
-| goreng 2.1.0 (Latihan) | AMI publik `ami-062900c135ab91582` + user data | … | … | … | `2.1.0` |
+| api 2.0.0 (C.4) | AMI milik sendiri (`ami-04c8c952bb796d41d`) | 18 dtk | tidak tercatat | tidak tercatat | `2.0.0` |
+| api 2.1.0 (D.3) | AMI milik sendiri (`ami-0808a03b2cea594d9`) | tidak tercatat | tidak tercatat | tidak tercatat | `2.1.0` |
+| goreng 2.1.0 (Latihan) | AMI publik `ami-062900c135ab91582` + user data | tidak tercatat | tidak tercatat | tidak tercatat | `2.1.0` |
 
 Selisih rata-rata waktu siap server goreng dibanding server api: ... detik. Dugaan pre-lab saya: ... detik.
 
