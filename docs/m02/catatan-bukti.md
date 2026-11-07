@@ -27,8 +27,8 @@ Satu baris per `koma cek m02`. Potret terakhir sebelum mengumpulkan harus potret
 | 2 | D.4 | api 2.1.0, ID baru | 06-11-2026 15:06 | `immutable` LULUS; hanya `bersih_akhir` GAGAL; `Latihan lulus: True` |
 | 3 | Latihan 2.1 | api 2.1.0 + server goreng | 06-11-2026 15:14 | 3 instance aktif (api, pembangun, goreng `http://15.135.214.5`); `Latihan lulus: True`, hanya `bersih_akhir` GAGAL |
 | 4 | E.2.2 | bersih setelah `tofu destroy` | 06-11-2026 15:23 | potret kosong, 13/13 LULUS; `Latihan lulus: True`, `Tugas lulus: True` |
-| 5 | Tugas Langkah 2 | rilis kasus `<versi>` | | |
-| 6 | Tugas Langkah 3 | bersih lagi | | |
+| 5 | Tugas Langkah 2 | rilis kasus `2.2.0` | 07-11-2026 19:27 | api `t3.small` `i-095b9b2e4bb71543e`; 12/13 LULUS, hanya `bersih_akhir` GAGAL (potret 6 19:29 setelah `-replace` api: sama) |
+| 6 | Tugas Langkah 3 | bersih lagi | 07-11-2026 19:32 | potret 7 kosong, 13/13 LULUS, `Tugas lulus: True`; snapshot sisa AMI 0 |
 
 ## Catatan Bagian A
 
@@ -48,13 +48,13 @@ Mengapa pembangun cukup memakai `t3.micro` (satu kalimat): pembangun hanya menja
 
 | Hal | Isi |
 |---|---|
-| `aws_instance.pembangun` Creation complete | |
-| `time_sleep.tunggu_cloud_init` Creation complete | |
-| `aws_ami_from_instance.api` Creation complete | |
-| **Waktu panggang** (jumlah ketiganya) | |
+| `aws_instance.pembangun` Creation complete || tidak tercatat (keluaran terminal tidak tersimpan) |
+| `time_sleep.tunggu_cloud_init` Creation complete || tidak tercatat (keluaran terminal tidak tersimpan) |
+| `aws_ami_from_instance.api` Creation complete || tidak tercatat (keluaran terminal tidak tersimpan) |
+| **Waktu panggang** (jumlah ketiganya) || tidak tercatat (keluaran terminal tidak tersimpan) |
 | ID dan nama AMI 2.0.0 | `ami-04c8c952bb796d41d`, `koma-123450039-m02-api-2.0.0` |
-| `OwnerId` AMI (sama dengan akun saya?) | |
-| Baris `Cloud-init ... Up N seconds` dari log konsol (beserta jamnya) | |
+| `OwnerId` AMI (sama dengan akun saya?) | ya, milik akun saya (`image_location` `<akun saya>/koma-123450039-m02-api-…`), berbeda dengan `137112412989` milik Amazon |
+| Baris `Cloud-init ... Up N seconds` dari log konsol (beserta jamnya) || tidak tercatat (keluaran terminal tidak tersimpan) |
 
 Apakah jeda 120 detik cukup, dan apa buktinya:
 
@@ -64,9 +64,9 @@ Apakah jeda 120 detik cukup, dan apa buktinya:
 |---|---|
 | `url_api` | `http://3.27.73.80` |
 | ID instance api | `i-0b8eff1c29db0b71f` (instance pertama `i-06301b3ed407219ad` lahir tanpa IP publik, lalu diganti dengan `tofu apply -replace=aws_instance.api` setelah subnet bawaan dikembalikan ke `MapPublicIpOnLaunch = True`) |
-| `aws_instance.api` Creation complete | |
-| **Waktu siap** dari `koma sehat` (detik) | |
-| Jawaban `/versi` (versi dan host) | |
+| `aws_instance.api` Creation complete || tidak tercatat (keluaran terminal tidak tersimpan) |
+| **Waktu siap** dari `koma sehat` (detik) || tidak tercatat (keluaran terminal tidak tersimpan) |
+| Jawaban `/versi` (versi dan host) | `2.0.0`, peran `api` (dibuktikan cek `versi_cocok` LULUS di potret 1) |
 | Aturan masuk security group | satu aturan: TCP 80 dari `103.211.143.235/32` ("HTTP dari IP praktikan") |
 | Isi `keluar` (IpPermissionsEgress) security group | `[]` (kosong): aturan keluar bawaan dicabut provider, sehingga server tidak bisa mengunduh apa pun keluar |
 
@@ -96,9 +96,9 @@ Resource yang dihapus pertama kali dan akibatnya bagi pengguna API: `aws_instanc
 | Jam mengetik `yes` (WIB) | 14:57 |
 | Jam `koma sehat` alamat baru SEHAT (WIB) | sekitar 15:03 |
 | **Jeda layanan** | sekitar 6 menit (14:57 → 15:03); selama itu tidak ada server api yang melayani, dan alamat lama 3.27.73.80 hilang permanen |
-| Waktu panggang versi 2.1.0 | |
-| Waktu siap versi 2.1.0 (`koma sehat`, detik) | |
-| `koma sehat` alamat lama selama apply | |
+| Waktu panggang versi 2.1.0 || tidak tercatat (keluaran terminal tidak tersimpan) |
+| Waktu siap versi 2.1.0 (`koma sehat`, detik) || tidak tercatat (keluaran terminal tidak tersimpan) |
+| `koma sehat` alamat lama selama apply || tidak tercatat (keluaran terminal tidak tersimpan) |
 
 ## Catatan Bagian E
 
@@ -120,5 +120,5 @@ Resource yang dihapus pertama kali dan akibatnya bagi pengguna API: `aws_instanc
 | Waktu siap (`koma sehat`, detik) | 0,2 detik setelah perintah dijalankan; server api pengganti (`-replace`) sudah sehat sebelum `koma sehat` mulai, sehingga waktu siap nyata ≈ waktu `Creation complete` instance (di bawah satu menit) |
 | ID instance api rilis kasus | `i-095b9b2e4bb71543e` (potret 5, `http://16.178.57.245`), lalu diganti `-replace` menjadi `i-074e8d41a227c0c52` (potret 6, `http://3.26.35.158`) untuk mengukur waktu siap |
 | Jawaban `/versi` | `{"versi": "2.2.0", "peran": "api", "host": "ip-172-31-46-198.ap-southeast-2.compute.internal"}` |
-| Tautan *pull request* `modul-02` → `main` | |
-| NIM peninjau dan tanggal persetujuan | |
+| Tautan *pull request* `modul-02` → `main` | https://github.com/FebyAngelins/koma-infra/pull/2 |
+| NIM peninjau dan tanggal persetujuan | belum ada rekan peninjau (kelompok satu anggota); di-merge sendiri 07-11-2026, dilaporkan ke asisten |
