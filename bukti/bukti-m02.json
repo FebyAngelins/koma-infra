@@ -6,58 +6,58 @@
   "region": "ap-southeast-2",
   "akun_sidik": "900310cd4973e8a5",
   "modul": "m02",
-  "dibuat": "2026-11-06T08:23:28Z",
+  "dibuat": "2026-11-07T12:29:12Z",
   "sumber": "lokal",
   "hasil": [
     {
       "id": "instance_ada",
       "lulus": true,
-      "pesan": "dari potret aktif 2026-11-06T08:14:40Z; kini: 0 instance peran=api bertag modul=m02"
+      "pesan": "1 instance peran=api bertag modul=m02"
     },
     {
       "id": "dikelola_kode",
       "lulus": true,
-      "pesan": "dari potret aktif 2026-11-06T08:14:40Z; kini: semua instance m02 bertag managed-by=opentofu"
+      "pesan": "semua instance m02 bertag managed-by=opentofu"
     },
     {
       "id": "tag_pemilik",
       "lulus": true,
-      "pesan": "dari potret aktif 2026-11-06T08:14:40Z; kini: tag nim=123450039 dan kelompok=k01"
+      "pesan": "tag nim=123450039 dan kelompok=k01"
     },
     {
       "id": "image_terbit",
       "lulus": true,
-      "pesan": "dari potret aktif 2026-11-06T08:14:40Z; kini: AMI milik sendiri: belum ada"
+      "pesan": "AMI milik sendiri: ['koma-123450039-m02-api-2.2.0']"
     },
     {
       "id": "api_dari_image",
       "lulus": true,
-      "pesan": "dari potret aktif 2026-11-06T08:14:40Z; kini: instance api diluncurkan dari AMI m02 milik sendiri"
+      "pesan": "instance api diluncurkan dari AMI m02 milik sendiri"
     },
     {
       "id": "api_sehat",
       "lulus": true,
-      "pesan": "dari potret aktif 2026-11-06T08:14:40Z; kini: belum ada instance api"
+      "pesan": "GET /health -> 200 {status: ok}"
     },
     {
       "id": "pembangun_dari_publik",
       "lulus": true,
-      "pesan": "dari potret aktif 2026-11-06T08:14:40Z; kini: instance pembangun memakai AMI publik (Amazon Linux 2023) + cloud-init"
+      "pesan": "instance pembangun memakai AMI publik (Amazon Linux 2023) + cloud-init"
     },
     {
       "id": "versi_cocok",
       "lulus": true,
-      "pesan": "dari potret aktif 2026-11-06T08:14:40Z; kini: versi dari /versi sama dengan tag versi instance api"
+      "pesan": "versi dari /versi sama dengan tag versi instance api"
     },
     {
       "id": "sg_terbatas",
       "lulus": true,
-      "pesan": "dari potret aktif 2026-11-06T08:14:40Z; kini: belum ada instance api"
+      "pesan": "port 80 hanya dari /32; tidak ada aturan 0.0.0.0/0"
     },
     {
       "id": "nama_konvensi",
       "lulus": true,
-      "pesan": "dari potret aktif 2026-11-06T08:14:40Z; kini: Name instance dan nama AMI diawali koma-123450039-m02-"
+      "pesan": "Name instance dan nama AMI diawali koma-123450039-m02-"
     },
     {
       "id": "tanpa_instance_liar",
@@ -71,13 +71,13 @@
     },
     {
       "id": "bersih_akhir",
-      "lulus": true,
+      "lulus": false,
       "pesan": "potret terakhir: tanpa instance, AMI, dan snapshot sisa m02"
     }
   ],
   "ringkasan": {
     "latihan_lulus": true,
-    "tugas_lulus": true,
+    "tugas_lulus": false,
     "skor_latihan": 1.0
   },
   "riwayat": [
@@ -208,6 +208,76 @@
         "versi_cocok": false,
         "sg_terbatas": false,
         "nama_konvensi": false
+      }
+    },
+    {
+      "waktu": "2026-11-07T12:27:32Z",
+      "aktif": true,
+      "instance": {
+        "koma-123450039-m02-api": {
+          "id": "i-095b9b2e4bb71543e",
+          "sidik": "9f76f7bfb1af507b8b434a1dd0f8ddd400c79d00b2c669664e26a79690a3ec3c"
+        },
+        "koma-123450039-m02-pembangun": {
+          "id": "i-09ff8ff3d779dc090",
+          "sidik": "6450625e043689d8f6d08e2711f42d4444fb717669de458c3a60ef61a5a4847e"
+        }
+      },
+      "image": [
+        "koma-123450039-m02-api-2.2.0"
+      ],
+      "api": {
+        "id": "i-095b9b2e4bb71543e",
+        "versi": "2.2.0",
+        "versi_http": "2.2.0"
+      },
+      "yatim": 0,
+      "cek": {
+        "instance_ada": true,
+        "dikelola_kode": true,
+        "tag_pemilik": true,
+        "image_terbit": true,
+        "api_dari_image": true,
+        "api_sehat": true,
+        "pembangun_dari_publik": true,
+        "versi_cocok": true,
+        "sg_terbatas": true,
+        "nama_konvensi": true
+      }
+    },
+    {
+      "waktu": "2026-11-07T12:29:12Z",
+      "aktif": true,
+      "instance": {
+        "koma-123450039-m02-api": {
+          "id": "i-074e8d41a227c0c52",
+          "sidik": "9f76f7bfb1af507b8b434a1dd0f8ddd400c79d00b2c669664e26a79690a3ec3c"
+        },
+        "koma-123450039-m02-pembangun": {
+          "id": "i-09ff8ff3d779dc090",
+          "sidik": "6450625e043689d8f6d08e2711f42d4444fb717669de458c3a60ef61a5a4847e"
+        }
+      },
+      "image": [
+        "koma-123450039-m02-api-2.2.0"
+      ],
+      "api": {
+        "id": "i-074e8d41a227c0c52",
+        "versi": "2.2.0",
+        "versi_http": "2.2.0"
+      },
+      "yatim": 0,
+      "cek": {
+        "instance_ada": true,
+        "dikelola_kode": true,
+        "tag_pemilik": true,
+        "image_terbit": true,
+        "api_dari_image": true,
+        "api_sehat": true,
+        "pembangun_dari_publik": true,
+        "versi_cocok": true,
+        "sg_terbatas": true,
+        "nama_konvensi": true
       }
     }
   ],
