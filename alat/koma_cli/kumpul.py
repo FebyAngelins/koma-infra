@@ -103,7 +103,7 @@ def anggaran(api, akun: str) -> list[dict[str, Any]]:
         except ValueError:
             jumlah = 0.0
         hasil.append({"nama": b.get("BudgetName"), "batas": jumlah, "unit": batas.get("Unit"),
-                      "jenis": b.get("BudgetType")})
+                      "jenis": b.get("BudgetType"), "saringan": b.get("CostFilters") or {}})
     return hasil
 
 
@@ -499,3 +499,112 @@ def log_group_awalan(api, awalan: str) -> list[dict[str, Any]]:
         hasil.append({"nama": nama, "stream": len(st), "event_terakhir": terakhir or None,
                       "retensi": g.get("retentionInDays")})
     return sorted(hasil, key=lambda x: x["nama"] or "")
+
+
+# ---------------------------------------------------------------------------- Modul 07
+
+def topik_awalan(api, awalan: str) -> list[dict[str, Any]]:
+    """Topik SNS bernama awalan* beserta langganannya (protokol, endpoint, raw)."""
+    hasil = []
+    for t in api.panggil("sns", "list-topics").get("Topics", []):
+        arn = t.get("TopicArn") or ""
+        nama = arn.rsplit(":", 1)[-1]
+        if not nama.startswith(awalan):
+            continue
+        langganan = []
+        for s in api.panggil("sns", "list-subscriptions-by-topic", "--topic-arn", arn).get("Subscriptions", []):
+            sarn = s.get("SubscriptionArn") or ""
+            raw = False
+            if sarn.startswith("arn:"):
+                atr = api.panggil("sns", "get-subscription-attributes", "--subscription-arn", sarn).get("Attributes") or {}
+                raw = str(atr.get("RawMessageDelivery", "false")).lower() == "true"
+            langganan.append({"protokol": s.get("Protocol"), "endpoint": s.get("Endpoint"), "raw": raw,
+                              "terkonfirmasi": sarn.startswith("arn:")})
+        hasil.append({"nama": nama, "arn": arn, "langganan": langganan})
+    return sorted(hasil, key=lambda x: x["nama"])
+
+
+def antrean_awalan(api, awalan: str) -> list[dict[str, Any]]:
+    """Antrean SQS bernama awalan*: ARN, tujuan redrive (DLQ), dan perkiraan jumlah pesan."""
+    hasil = []
+    for url in api.panggil("sqs", "list-queues", "--queue-name-prefix", awalan).get("QueueUrls", []) or []:
+        atr = api.panggil("sqs", "get-queue-attributes", "--queue-url", url,
+                          "--attribute-names", "All").get("Attributes") or {}
+        try:
+            redrive = json.loads(atr.get("RedrivePolicy") or "{}")
+        except ValueError:
+            redrive = {}
+        hasil.append({"nama": url.rsplit("/", 1)[-1], "url": url, "arn": atr.get("QueueArn"),
+                      "redrive_ke": redrive.get("deadLetterTargetArn"),
+                      "maks_terima": redrive.get("maxReceiveCount"),
+                      "pesan": int(atr.get("ApproximateNumberOfMessages") or 0)
+                      + int(atr.get("ApproximateNumberOfMessagesNotVisible") or 0)})
+    return sorted(hasil, key=lambda x: x["nama"])
+
+
+def fungsi_awalan(api, awalan: str) -> list[dict[str, Any]]:
+    """Fungsi Lambda bernama awalan* beserta event source mapping-nya."""
+    hasil = []
+    for f in api.panggil("lambda", "list-functions").get("Functions", []):
+        nama = f.get("FunctionName") or ""
+        if not nama.startswith(awalan):
+            continue
+        pemetaan = [{"sumber": m.get("EventSourceArn"), "fungsi": m.get("FunctionArn"), "state": m.get("State")}
+                    for m in api.panggil("lambda", "list-event-source-mappings", "--function-name", nama)
+                    .get("EventSourceMappings", [])]
+        hasil.append({"nama": nama, "arn": f.get("FunctionArn"), "memori": f.get("MemorySize"),
+                      "timeout": f.get("Timeout"), "runtime": f.get("Runtime"), "pemetaan": pemetaan})
+    return sorted(hasil, key=lambda x: x["nama"])
+
+
+def oidc_github(api) -> dict[str, Any] | None:
+    for p in api.panggil("iam", "list-open-id-connect-providers").get("OpenIDConnectProviderList", []):
+        arn = p.get("Arn") or ""
+        if arn.endswith("/token.actions.githubusercontent.com"):
+            d = api.panggil("iam", "get-open-id-connect-provider", "--open-id-connect-provider-arn", arn)
+            return {"arn": arn, "url": d.get("Url"), "audiens": sorted(d.get("ClientIDList") or [])}
+    return None
+
+
+def role_trust(api, nama: str) -> dict[str, Any] | None:
+    """Kebijakan kepercayaan (trust policy) sebuah role, atau None bila role tidak ada."""
+    try:
+        r = api.panggil("iam", "get-role", "--role-name", nama).get("Role") or {}
+    except GalatAws as exc:
+        if "NoSuchEntity" in str(exc):
+            return None
+        raise
+    return {"nama": r.get("RoleName"), "arn": r.get("Arn"), "trust": _dokumen(r.get("AssumeRolePolicyDocument")),
+            "sesi_maks": r.get("MaxSessionDuration")}
+
+
+def jejak_pipeline(api, nim: str, sesi_awalan: str = "koma-pipeline-", hari: int = 30) -> dict[str, Any]:
+    """Ringkasan kejadian CloudTrail (manajemen) atas resource koma-<nim>-m07-* oleh role pipeline.
+
+    Hanya nama kejadian dan waktunya yang disimpan; isi permintaan dibaca lalu dibuang.
+    """
+    import datetime as _dt
+
+    mulai = (_dt.datetime.now(_dt.timezone.utc) - _dt.timedelta(days=hari)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    role = f"assumed-role/koma-{nim}-pipeline/"
+    target = f"koma-{nim}-m07-"
+    acara, terakhir = set(), None
+    for sumber in ("lambda.amazonaws.com", "sns.amazonaws.com", "sqs.amazonaws.com"):
+        r = api.panggil("cloudtrail", "lookup-events", "--lookup-attributes",
+                        f"AttributeKey=EventSource,AttributeValue={sumber}", "--start-time", mulai)
+        for e in r.get("Events", []):
+            if not str(e.get("Username") or "").startswith(sesi_awalan):
+                continue
+            try:
+                ct = json.loads(e.get("CloudTrailEvent") or "{}")
+            except ValueError:
+                ct = {}
+            if role not in str((ct.get("userIdentity") or {}).get("arn") or ""):
+                continue
+            if ct.get("readOnly") is True or target not in json.dumps(ct.get("requestParameters") or {}) + \
+                    json.dumps(e.get("Resources") or []):
+                continue
+            acara.add(e.get("EventName"))
+            waktu = str(e.get("EventTime"))
+            terakhir = max(terakhir or waktu, waktu)
+    return {"jumlah": len(acara), "acara": sorted(acara), "terakhir": terakhir}

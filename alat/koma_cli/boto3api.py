@@ -14,7 +14,9 @@ from .awsapi import GalatAws
 
 #: parameter yang menerima daftar
 DAFTAR = {"Filters", "Filter", "Owners", "OwnerIds", "GroupIds", "TagFilters", "Names", "InstanceIds",
-          "ResourceTypeFilters"}
+          "ResourceTypeFilters", "AttributeNames"}
+#: nama parameter boto3 yang tidak mengikuti pola kapitalisasi flag CLI
+NAMA_KHUSUS = {"OpenIdConnectProviderArn": "OpenIDConnectProviderArn"}
 #: layanan global yang harus dipanggil di us-east-1
 GLOBAL = {"budgets": "us-east-1"}
 #: nama layanan AWS CLI -> nama klien boto3
@@ -24,7 +26,13 @@ CAMEL_KECIL = {"logs"}
 
 
 def _nama_param(flag: str) -> str:
-    return "".join(b.capitalize() for b in flag.lstrip("-").split("-"))
+    nama = "".join(b.capitalize() for b in flag.lstrip("-").split("-"))
+    return NAMA_KHUSUS.get(nama, nama)
+
+
+def _atribut(teks: str) -> dict[str, str]:
+    """"AttributeKey=EventSource,AttributeValue=lambda.amazonaws.com" -> dict tanpa Values."""
+    return dict(bagian.partition("=")[::2] for bagian in teks.split(","))
 
 
 def _pasangan(teks: str) -> dict[str, Any]:
@@ -54,6 +62,8 @@ def urai(args: tuple[str, ...]) -> dict[str, Any]:
         nama = _nama_param(flag)
         if nama in ("Filters", "Filter", "TagFilters", "ParameterFilters"):
             params[nama] = [_pasangan(v) for v in nilai]
+        elif nama == "LookupAttributes":
+            params[nama] = [_atribut(v) for v in nilai]
         elif nama in DAFTAR:
             params[nama] = nilai
         else:
