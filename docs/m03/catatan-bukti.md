@@ -126,24 +126,30 @@ Rencana alamat organisasi (tandai "asumsi" bila tidak tertulis di berkas kasus; 
 
 | Blok | Untuk (lokasi atau segmen) | Asumsi atau dari berkas kasus | Alasan ukuran |
 |---|---|---|---|
-| | | | |
-| | | | |
-| | | | |
-| VPC anggota: | | | |
+| `10.0.0.0/16` | Pusat data primer dan kantor pusat Bandar Lampung (segmen server, kantor) | lokasi dari E2; blok adalah asumsi | /16 memberi ruang memecah segmen server yang kini flat (E7) menjadi tier tanpa ganti blok |
+| `10.1.0.0/16` | Ruang server sekunder klinik utama Metro (replika DB, NAS kedua) | lokasi dari E2; blok adalah asumsi | sama besar dengan pusat agar replika dan DR dapat meniru tata letak pusat |
+| `10.10.0.0/16` | 70 klinik, satu `/24` flat per klinik (`10.10.<n>.0/24`) | `/24` flat per klinik dari E7; blok induk asumsi | 256 slot `/24` untuk 70 klinik, sisa untuk klinik baru |
+| `10.11.0.0/16` | 2 laboratorium rujukan dan 2 laboratorium mitra (VPN site-to-site) | lokasi dari E2, A4; blok asumsi | dipisah dari klinik agar aturan VPN mitra tidak menyentuh segmen klinik |
+| `10.20.0.0/16` | VPN vendor kios antrean dan cadangan LTE | A4 (VPN permanen vendor); blok asumsi | dipisah agar vendor tidak lagi berada di segmen server pusat (A3, A4) |
+| `10.40.0.0/14` | Seluruh VPC cloud (`10.40`–`10.43`), satu `/16` per anggota atau lingkungan | asumsi | menyisakan ruang untuk VPC tiap anggota kelompok dan lingkungan dev/staging/prod (G2) tanpa tumpang tindih kantor |
+| VPC anggota: `10.41.0.0/16` | VPC Feby Angelina (123450039), anggota 1 k01; `10.40.0.0/16` dicadangkan untuk lingkungan bersama | asumsi | tidak memakai `10.30.0.0/16` kelas; tidak tumpang tindih blok kantor mana pun sehingga kelak bisa disambung VPN atau peering (E8) |
 
 Pemetaan komponen E1:
 
 | Komponen E1 | Tier (`alb`/`web`/`db`/belum dimodelkan) | Jalur yang dibutuhkan (asal → tujuan:port) | Perlu keluar internet? |
 |---|---|---|---|
-| | | | |
-| | | | |
-| | | | |
-| | | | |
+| Portal web pasien dan dasbor klinik | `alb` (pintu) + `web` | pasien/klinik → alb:80 (kelak 443); alb → web:80 | tidak |
+| API RME (pendaftaran, rekam medis, order lab) | `web` (`koma_api.py` = web sekaligus API) | klinik, kios, lab mitra → alb:80; alb → web:80; web → db:5432 | tidak (mitra memanggil masuk lewat ALB) |
+| Database relasional RME | `db` | web → db:5432 saja | tidak |
+| Antrean dan worker (hasil lab, notifikasi, sinkronisasi klaim) | belum dimodelkan (kelak tier `worker` di subnet privat) | worker → db:5432; worker → gateway SMS/e-mail dan API 14 asuransi:443 | ya, terbatas ke tujuan tertentu (butuh NAT atau proxy keluar) |
+| Analytics mutu layanan dan arsip | belum dimodelkan (E8: pindah ke cloud publik) | analytics → replika db:5432 (baca); ekspor agregat ter-pseudonim → object storage:443 | ya, hanya ke layanan penyimpanan (VPC endpoint cukup) |
+| Object storage hasil lab PDF, foto klinis, rujukan | belum dimodelkan (Modul 04) | web → object storage:443 | tidak bila lewat VPC gateway endpoint |
+| Kios antrean vendor (A4, bukan komponen E1 tetapi pemakai API) | di luar VPC | kios → alb:80 saja; tidak ada jalur ke web atau db | tidak |
 
 | Hal | Isi |
 |---|---|
-| `cidr_vpc` di `stacks/m03-network/kasus.tfvars` (rujuk `K-03-…`) | |
-| `jumlah_web` di `stacks/m03-app/kasus.tfvars` (rujuk `K-03-…`) | |
+| `cidr_vpc` di `stacks/m03-network/kasus.tfvars` (rujuk `K-03-…`) | `10.41.0.0/16` (K-03-001) |
+| `jumlah_web` di `stacks/m03-app/kasus.tfvars` (rujuk `K-03-…`) | `2` (K-03-002) |
 | `tofu output` stack jaringan dengan nilai kasus | |
 | `koma sehat` ke ALB kasus (detik) | |
 | Jawaban `/versi` | |
