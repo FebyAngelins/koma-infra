@@ -57,22 +57,22 @@ Matriks konektivitas: isi kolom "Harapan pre-lab" sebelum sesi, kolom lain setel
 
 | Asal → tujuan:port | Harapan pre-lab | Aturan di kode (nama resource) | Tercatat di AWS (B.3.2) |
 |---|---|---|---|
-| laptop (`/32`) → alb:80 | | | |
-| internet lain → alb:80 | | | |
-| alb → web:80 | | | |
-| alb → db:5432 | | | |
-| web → db:5432 | | | |
-| web → web:80 | | | |
-| db → web:80 | | | |
-| internet → web:80 / db:5432 | | | |
+| laptop (`/32`) → alb:80 | buka | `alb_dari_saya` (cidr `103.126.172.221/32`) | |
+| internet lain → alb:80 | tutup | tidak ada aturan (hanya /32) | |
+| alb → web:80 | buka | `alb_ke_web` (keluar) + `web_dari_alb` (masuk) | |
+| alb → db:5432 | tutup | tidak ada aturan | |
+| web → db:5432 | buka | `web_ke_db` (keluar) + `db_dari_web` (masuk) | |
+| web → web:80 | tutup (dugaan awal: buka, karena satu subnet/segmen) | tidak ada aturan; SG web hanya menerima dari SG alb | |
+| db → web:80 | tutup | tidak ada aturan; SG db tanpa aturan keluar | |
+| internet → web:80 / db:5432 | tutup | tidak ada aturan; server tanpa IP publik, subnet privat tanpa rute keluar | |
 
 | Hal | Isi |
 |---|---|
-| Ringkasan plan stack aplikasi di B.3.1 | |
-| ID security group alb, web, db | |
+| Ringkasan plan stack aplikasi di B.3.1 | `Plan: 8 to add, 0 to change, 0 to destroy.` (3 SG + 5 aturan; dijalankan dengan `-target` agar server dan ALB belum ikut dibuat) |
+| ID security group alb, web, db | alb `sg-0e1d159735142c6b3`, web `sg-09466fd15d74b1e3a`, db `sg-0863ad2dd7623ac6d` |
 | Isi `keluar` security group db | |
 
-Jalur mana yang dugaan pre-lab Anda berbeda dengan kode, dan mengapa:
+Jalur mana yang dugaan pre-lab Anda berbeda dengan kode, dan mengapa: `web → web:80`. Saya semula mengira dua server web di tier yang sama otomatis bisa saling menjangkau seperti di jaringan flat (E7 KSL: satu segmen server). Di kode, SG web hanya menerima dari SG alb, jadi server web yang disusupi tidak dapat melompat ke saudaranya walaupun keduanya memakai SG yang sama.
 
 ## Catatan Bagian C
 
