@@ -14,11 +14,11 @@ Isi berkas ini sambil mengerjakan prosedur. Angka, ID, dan alamat disalin dari k
 
 | Hal | Isi |
 |---|---|
-| `role_arn` stack `m00-verifier` (ganti 12 digit akun dengan `<akun>`) | `arn:aws:iam::<akun>:role/koma-verifier-ro` |
+| `role_arn` stack `m00-verifier` (ganti 12 digit akun dengan `<akun>`) | `arn:aws:iam::<akun>:role/koma-verifier-ro`; apply 10 Nov 2026 membuat 3 resource (role, `koma-baca-metadata`, dan `koma-baca-daftar-objek` dari `izin-m04.tf` yang ikut tersalin starter Modul 04) |
 | `koma info` menampilkan URL verifier (ya/belum) | belum (nilai verifier dari dosen belum diterima) |
 | Kuota vCPU (`L-1216C47A`) | 16 |
 | `jumlah_web` yang dipakai di kelas dan alasannya | 2: kuota 16 vCPU cukup untuk 3 × t3.micro (6 vCPU) |
-| `cidr_saya` (keluaran `koma ip`) | `103.126.172.221/32` (sesi 7 Nov 2026) |
+| `cidr_saya` (keluaran `koma ip`) | `103.126.172.221/32` (sesi 7 Nov 2026); `182.3.101.33/32` (sesi 10 Nov 2026) |
 
 ## Langkah dan bukti
 
@@ -43,8 +43,8 @@ Satu baris per `koma cek m03`. Potret terakhir sebelum mengumpulkan harus potret
 | `cidrsubnet(var.cidr_vpc, 8, 11)` | `10.30.11.0/24` (privat-b) |
 | `cidrhost(cidrsubnet(var.cidr_vpc, 8, 10), 4)` dan mengapa bukan `.1` | `10.30.10.4`; `.0` alamat jaringan, `.1` router VPC, `.2` resolver DNS Amazon, `.3` cadangan AWS, jadi host pertama yang dapat dipakai `.4` |
 | Ringkasan plan stack jaringan (`Plan: …`) | `Plan: 13 to add, 0 to change, 0 to destroy.` (VPC, SG bawaan, IGW, 4 subnet, 2 route table, 4 asosiasi) |
-| `vpc_id` | `vpc-091399dd3abd41d73` (`cidr_vpc = 10.30.0.0/16`); apply `13 added` |
-| Subnet: nama, CIDR, AZ (empat baris) | publik-a `subnet-0011d5b24fb2b3f7b` 10.30.0.0/24 ap-southeast-2a; publik-b `subnet-0c581836537f98318` 10.30.1.0/24 ap-southeast-2b; privat-a `subnet-08ec39adccae064d3` 10.30.10.0/24 ap-southeast-2a; privat-b `subnet-04a0543dd816c7036` 10.30.11.0/24 ap-southeast-2b |
+| `vpc_id` | `vpc-091399dd3abd41d73` (sesi 7 Nov, lalu di-destroy); dibangun ulang 10 Nov 2026: `vpc-08b317e54e0af6fe8` (`cidr_vpc = 10.30.0.0/16`), apply `13 added` |
+| Subnet: nama, CIDR, AZ (empat baris) | sesi 10 Nov: publik-a `subnet-015bdc4539df736f7`, publik-b `subnet-0f0f773773134ca74`, privat-a `subnet-0ff89cf97e6f33a99`, privat-b `subnet-0c4db0dad37c1248e` (CIDR dan AZ sama). Sesi 7 Nov: publik-a `subnet-0011d5b24fb2b3f7b` 10.30.0.0/24 ap-southeast-2a; publik-b `subnet-0c581836537f98318` 10.30.1.0/24 ap-southeast-2b; privat-a `subnet-08ec39adccae064d3` 10.30.10.0/24 ap-southeast-2a; privat-b `subnet-04a0543dd816c7036` 10.30.11.0/24 ap-southeast-2b |
 | Rute di `rt-publik` (dari A.6.2) | `10.30.0.0/16 → local` dan `0.0.0.0/0 → igw-07a5615192db708f9`; subnet publik-a dan publik-b |
 | Rute di `rt-privat` (dari A.6.2) | hanya `10.30.0.0/16 → local` (tanpa rute keluar, tanpa NAT); subnet privat-a dan privat-b |
 | Plan kedua (A.6.3) | `No changes. Your infrastructure matches the configuration.` |
@@ -69,7 +69,7 @@ Matriks konektivitas: isi kolom "Harapan pre-lab" sebelum sesi, kolom lain setel
 | Hal | Isi |
 |---|---|
 | Ringkasan plan stack aplikasi di B.3.1 | `Plan: 8 to add, 0 to change, 0 to destroy.` (3 SG + 5 aturan; dijalankan dengan `-target` agar server dan ALB belum ikut dibuat) |
-| ID security group alb, web, db | alb `sg-0e1d159735142c6b3`, web `sg-09466fd15d74b1e3a`, db `sg-0863ad2dd7623ac6d` |
+| ID security group alb, web, db | sesi 10 Nov: alb `sg-0b4be40bfdb3d460b`, web `sg-03e6381c007584d55`, db `sg-0631aa532c30456ee` (sesi 7 Nov: alb `sg-0e1d159735142c6b3`, web `sg-09466fd15d74b1e3a`, db `sg-0863ad2dd7623ac6d`) |
 | Isi `keluar` security group db | `[]` (kosong): db tidak dapat membuka koneksi ke mana pun |
 
 Jalur mana yang dugaan pre-lab Anda berbeda dengan kode, dan mengapa: `web → web:80`. Saya semula mengira dua server web di tier yang sama otomatis bisa saling menjangkau seperti di jaringan flat (E7 KSL: satu segmen server). Di kode, SG web hanya menerima dari SG alb, jadi server web yang disusupi tidak dapat melompat ke saudaranya walaupun keduanya memakai SG yang sama.
