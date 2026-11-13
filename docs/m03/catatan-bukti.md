@@ -154,5 +154,5 @@ Pemetaan komponen E1:
 | `koma sehat` ke ALB kasus (detik) | `SEHAT setelah 0.6 detik: {'status': 'ok'}` (`koma-123450039-m03-244406654.ap-southeast-2.elb.amazonaws.com`) |
 | Jawaban `/versi` | `{"versi": "3.0.0", "peran": "web", "host": "ip-10-41-10-115.ap-southeast-2.compute.internal"}` |
 | Hasil potret 6 dan potret 7 | keduanya `verifier menolak (403): Forbidden` (13 Nov), dilewati atas arahan dosen. Destroy kasus: app 16 destroyed, jaringan 13 destroyed; setelahnya VPC m03 kosong dan ALB `LoadBalancerNotFound` |
-| Tautan *pull request* `modul-03` → `main` | |
-| NIM peninjau dan tanggal persetujuan | |
+| Tautan *pull request* `modul-03` → `main` | https://github.com/FebyAngelins/koma-infra/pull/3 |
+| NIM peninjau dan tanggal persetujuan | tanpa peninjau: tugas individu atas arahan dosen; di-merge sendiri 13 Nov 2026 |
