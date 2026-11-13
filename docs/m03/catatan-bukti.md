@@ -92,22 +92,22 @@ Jalur mana yang dugaan pre-lab Anda berbeda dengan kode, dan mengapa: `web → w
 
 | Hal | Sebelum (potret 1) | Sesudah (potret 2) |
 |---|---|---|
-| `vpc_id` | `vpc-08b317e54e0af6fe8` | |
-| `subnet_privat_ids` | `subnet-0ff89cf97e6f33a99`, `subnet-0c4db0dad37c1248e` | |
-| `url_lb` (nama DNS ALB) | `koma-123450039-m03-1821958404.ap-southeast-2.elb.amazonaws.com` | |
+| `vpc_id` | `vpc-08b317e54e0af6fe8` | `vpc-08b317e54e0af6fe8` (sama) |
+| `subnet_privat_ids` | `subnet-0ff89cf97e6f33a99`, `subnet-0c4db0dad37c1248e` | sama: `subnet-0ff89cf97e6f33a99`, `subnet-0c4db0dad37c1248e` |
+| `url_lb` (nama DNS ALB) | `koma-123450039-m03-1821958404.ap-southeast-2.elb.amazonaws.com` | `koma-123450039-m03-801830194.ap-southeast-2.elb.amazonaws.com` (baru) |
 | ID instance web-1 | `i-0bb239ad7a27d161f` | |
-| `ip_privat` web-1 | `10.30.10.218` | |
+| `ip_privat` web-1 | `10.30.10.218` | `10.30.10.219` (baru; web-2 `10.30.11.176`, db `10.30.10.151`) |
 
 | Hal | Isi |
 |---|---|
-| `tofu plan` stack jaringan sebelum destroy app (D.1.1) | |
-| Ringkasan `tofu destroy` stack app | |
+| `tofu plan` stack jaringan sebelum destroy app (D.1.1) | `No changes. Your infrastructure matches the configuration.` (13 Nov) |
+| Ringkasan `tofu destroy` stack app | `Destroy complete! Resources: 16 destroyed.` (hanya resource m03-app; tanpa `aws_vpc`/`aws_subnet`) |
 | `koma sehat` alamat lama selama destroy | |
-| `describe-vpcs` setelah destroy app | |
-| Ringkasan `tofu apply` stack app lagi | |
-| `siklus_terpisah` pada potret 2 | |
+| `describe-vpcs` setelah destroy app | `vpc-08b317e54e0af6fe8  10.30.0.0/16  m03-network`: VPC tetap ada |
+| Ringkasan `tofu apply` stack app lagi | `Apply complete! Resources: 16 added` |
+| `siklus_terpisah` pada potret 2 | tidak terbaca: `koma cek m03` tetap `403 Forbidden` (13 Nov), potret dilewati atas arahan dosen. Bukti manual: VPC sama (`vpc-08b317e54e0af6fe8`) sebelum dan sesudah, ALB dengan nama DNS berbeda |
 
-Apa yang tetap dan apa yang berganti; di mana titik masuk yang tidak boleh berubah alamatnya seharusnya diletakkan, dan stack mana yang memilikinya:
+Apa yang tetap dan apa yang berganti; di mana titik masuk yang tidak boleh berubah alamatnya seharusnya diletakkan, dan stack mana yang memilikinya: yang tetap adalah VPC, keempat subnet, IGW, dan route table (milik stack `m03-network`, plan-nya `No changes` sepanjang siklus); yang berganti adalah ALB beserta nama DNS-nya (`...-1821958404...` menjadi `...-801830194...`), ID instance, dan alamat privat server (web-1 `10.30.10.218` menjadi `10.30.10.219`). Pengguna yang menyimpan nama DNS ALB lama kehilangan layanan walaupun jaringan tidak tersentuh, jadi titik masuk yang alamatnya tidak boleh berubah (nama domain tetap, mis. `portal.kliniksehat...` sebagai alias DNS ke ALB, atau ALB itu sendiri) seharusnya diletakkan di lapisan yang lebih awet daripada aplikasi: dimiliki stack jaringan atau stack titik-masuk tersendiri yang jarang dibongkar, sementara stack aplikasi hanya mendaftarkan target ke sana.
 
 ## Catatan Bagian E
 
