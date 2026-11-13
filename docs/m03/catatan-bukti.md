@@ -78,25 +78,25 @@ Jalur mana yang dugaan pre-lab Anda berbeda dengan kode, dan mengapa: `web → w
 
 | Hal | Isi |
 |---|---|
-| Ringkasan plan C.4.1 | |
+| Ringkasan plan C.4.1 | `Plan: 8 to add, 0 to change, 0 to destroy.` (web-1, web-2, db, ALB, target group, 2 attachment, listener; sesi 13 Nov) |
 | `aws_lb.app` Creation complete (durasi) | |
-| `url_lb` | |
-| `ip_privat` (web-1, web-2, db) | |
-| `koma sehat` ke ALB (detik) | |
-| Nama host yang menjawab `/versi` (bergantian?) | |
-| `curl --max-time 5` ke alamat privat web-1 | |
-| Status target dari `describe-target-health` | |
-| `laporan_klien` di bukti (kode dan isi) | |
+| `url_lb` | `http://koma-123450039-m03-1821958404.ap-southeast-2.elb.amazonaws.com` |
+| `ip_privat` (web-1, web-2, db) | web-1 `10.30.10.218` (privat-a), web-2 `10.30.11.165` (privat-b), db `10.30.10.25` (privat-a) |
+| `koma sehat` ke ALB (detik) | `SEHAT setelah 3.0 detik: {'status': 'ok'}` |
+| Nama host yang menjawab `/versi` (bergantian?) | ya, bergantian: `ip-10-30-10-218` (web-1) dan `ip-10-30-11-165` (web-2); 6 permintaan = 3 ke web-1, 3 ke web-2, semua `versi 3.0.0` `peran web` |
+| `curl --max-time 5` ke alamat privat web-1 | `curl: (28) Connection timed out after 5005 milliseconds`: alamat `10.30.10.218` privat, tidak terjangkau dari laptop |
+| Status target dari `describe-target-health` | 2 target `healthy`: `i-0e3e52174ec20f908` dan `i-0bb239ad7a27d161f` |
+| `laporan_klien` di bukti (kode dan isi) | tidak ada: `koma cek m03` ditolak verifier `403 AccessDeniedException` dari Function URL (RequestId `e6cf860b-671b-4dba-94e9-9ffd260e34c4`, 13 Nov 2026); NIM/kelompok, role `koma-verifier-ro`, dan ExternalId sudah diperiksa benar. Atas arahan dosen (13 Nov), potret dilewati dan langkah dilanjutkan |
 
 ## Catatan Bagian D
 
 | Hal | Sebelum (potret 1) | Sesudah (potret 2) |
 |---|---|---|
-| `vpc_id` | | |
-| `subnet_privat_ids` | | |
-| `url_lb` (nama DNS ALB) | | |
+| `vpc_id` | `vpc-08b317e54e0af6fe8` | |
+| `subnet_privat_ids` | `subnet-0ff89cf97e6f33a99`, `subnet-0c4db0dad37c1248e` | |
+| `url_lb` (nama DNS ALB) | `koma-123450039-m03-1821958404.ap-southeast-2.elb.amazonaws.com` | |
 | ID instance web-1 | | |
-| `ip_privat` web-1 | | |
+| `ip_privat` web-1 | `10.30.10.218` | |
 
 | Hal | Isi |
 |---|---|
