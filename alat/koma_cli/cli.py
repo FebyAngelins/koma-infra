@@ -155,8 +155,9 @@ def cmd_verifier(a) -> int:
     ident = _identitas()
     if not re.fullmatch(r"https://[A-Za-z0-9.-]+(/.*)?", a.url):
         raise Galat("URL verifier harus https://... (dari dosen).")
-    if not re.fullmatch(r"[0-9a-f]{24}", a.token):
-        raise Galat("Token harus 24 karakter heksadesimal (dari dosen).")
+    # Dinonaktifkan atas instruksi dosen: format token verifier kini bukan heksadesimal.
+    #if not re.fullmatch(r"[0-9a-f]{24}", a.token):
+        #raise Galat("Token harus 24 karakter heksadesimal (dari dosen).")
     IDENTITAS.write_text(json.dumps({**ident, "verifier_url": a.url, "token": a.token}, indent=2) + "\n",
                          encoding="utf-8")
     _cetak("Alamat verifier dan token disimpan di .koma/identitas.json (tidak di-commit).")

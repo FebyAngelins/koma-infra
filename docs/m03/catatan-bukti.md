@@ -15,7 +15,7 @@ Isi berkas ini sambil mengerjakan prosedur. Angka, ID, dan alamat disalin dari k
 | Hal | Isi |
 |---|---|
 | `role_arn` stack `m00-verifier` (ganti 12 digit akun dengan `<akun>`) | `arn:aws:iam::<akun>:role/koma-verifier-ro`; apply 10 Nov 2026 membuat 3 resource (role, `koma-baca-metadata`, dan `koma-baca-daftar-objek` dari `izin-m04.tf` yang ikut tersalin starter Modul 04) |
-| `koma info` menampilkan URL verifier (ya/belum) | belum (nilai verifier dari dosen belum diterima) |
+| `koma info` menampilkan URL verifier (ya/belum) | ya (13 Nov 2026); cek format token di `alat/koma_cli/cli.py` dinonaktifkan atas instruksi dosen karena token bukan heksadesimal |
 | Kuota vCPU (`L-1216C47A`) | 16 |
 | `jumlah_web` yang dipakai di kelas dan alasannya | 2: kuota 16 vCPU cukup untuk 3 × t3.micro (6 vCPU) |
 | `cidr_saya` (keluaran `koma ip`) | `103.126.172.221/32` (sesi 7 Nov 2026); `182.3.101.33/32` (sesi 10 Nov 2026) |
