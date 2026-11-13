@@ -438,13 +438,16 @@ def alb_bernama(api, nama: str, awalan_tg: str) -> dict[str, Any] | None:
         return None
     lb = lbs[0]
     arn = lb.get("LoadBalancerArn")
-    tujuan = None
+    tujuan, bobot = None, {}
     for ls in api.panggil("elbv2", "describe-listeners", "--load-balancer-arn", arn).get("Listeners", []):
         if ls.get("Port") == 80:
             for act in ls.get("DefaultActions", []):
                 if act.get("Type") == "forward":
-                    tujuan = act.get("TargetGroupArn") or next(
-                        (t.get("TargetGroupArn") for t in (act.get("ForwardConfig") or {}).get("TargetGroups", [])), None)
+                    daftar = (act.get("ForwardConfig") or {}).get("TargetGroups", [])
+                    tujuan = act.get("TargetGroupArn") or next((t.get("TargetGroupArn") for t in daftar), None)
+                    bobot = {t.get("TargetGroupArn"): int(t.get("Weight", 1)) for t in daftar}
+                    if not bobot and act.get("TargetGroupArn"):
+                        bobot = {act["TargetGroupArn"]: 1}
     grup = {}
     for tg in api.panggil("elbv2", "describe-target-groups").get("TargetGroups", []):
         if not str(tg.get("TargetGroupName", "")).startswith(awalan_tg):
@@ -457,7 +460,7 @@ def alb_bernama(api, nama: str, awalan_tg: str) -> dict[str, Any] | None:
         }
     return {"arn": arn, "nama": lb.get("LoadBalancerName"), "dns": lb.get("DNSName"),
             "state": (lb.get("State") or {}).get("Code"), "akhiran": arn.split(":loadbalancer/", 1)[-1],
-            "tujuan": tujuan, "target_groups": grup}
+            "tujuan": tujuan, "bobot": bobot, "target_groups": grup}
 
 
 def alarm_awalan(api, awalan: str) -> list[dict[str, Any]]:
@@ -578,8 +581,10 @@ def role_trust(api, nama: str) -> dict[str, Any] | None:
             "sesi_maks": r.get("MaxSessionDuration")}
 
 
-def jejak_pipeline(api, nim: str, sesi_awalan: str = "koma-pipeline-", hari: int = 30) -> dict[str, Any]:
-    """Ringkasan kejadian CloudTrail (manajemen) atas resource koma-<nim>-m07-* oleh role pipeline.
+def jejak_pipeline(api, nim: str, sesi_awalan: str = "koma-pipeline-", hari: int = 30, modul: str = "m07",
+                   sumber_acara: tuple[str, ...] = ("lambda.amazonaws.com", "sns.amazonaws.com",
+                                                    "sqs.amazonaws.com")) -> dict[str, Any]:
+    """Ringkasan kejadian CloudTrail (manajemen) atas resource koma-<nim>-<modul>-* oleh role pipeline.
 
     Hanya nama kejadian dan waktunya yang disimpan; isi permintaan dibaca lalu dibuang.
     """
@@ -587,9 +592,9 @@ def jejak_pipeline(api, nim: str, sesi_awalan: str = "koma-pipeline-", hari: int
 
     mulai = (_dt.datetime.now(_dt.timezone.utc) - _dt.timedelta(days=hari)).strftime("%Y-%m-%dT%H:%M:%SZ")
     role = f"assumed-role/koma-{nim}-pipeline/"
-    target = f"koma-{nim}-m07-"
+    target = f"koma-{nim}-{modul}-"
     acara, terakhir = set(), None
-    for sumber in ("lambda.amazonaws.com", "sns.amazonaws.com", "sqs.amazonaws.com"):
+    for sumber in sumber_acara:
         r = api.panggil("cloudtrail", "lookup-events", "--lookup-attributes",
                         f"AttributeKey=EventSource,AttributeValue={sumber}", "--start-time", mulai)
         for e in r.get("Events", []):
@@ -608,3 +613,56 @@ def jejak_pipeline(api, nim: str, sesi_awalan: str = "koma-pipeline-", hari: int
             waktu = str(e.get("EventTime"))
             terakhir = max(terakhir or waktu, waktu)
     return {"jumlah": len(acara), "acara": sorted(acara), "terakhir": terakhir}
+
+
+# ---------------------------------------------------------------------------- Modul 08
+
+def registri(api, nama: str) -> dict[str, Any] | None:
+    """Repo ECR bernama tepat `nama` beserta tag image-nya (tanpa membaca isi image)."""
+    try:
+        repo = (api.panggil("ecr", "describe-repositories", "--repository-names", nama).get("repositories") or [None])[0]
+    except GalatAws as exc:
+        if "RepositoryNotFound" in str(exc):
+            return None
+        raise
+    if not repo:
+        return None
+    gambar = api.panggil("ecr", "describe-images", "--repository-name", nama).get("imageDetails", [])
+    return {"nama": repo.get("repositoryName"), "uri": repo.get("repositoryUri"),
+            "mutabilitas": repo.get("imageTagMutability"),
+            "pindai": bool((repo.get("imageScanningConfiguration") or {}).get("scanOnPush")),
+            "tag": sorted({tg for g in gambar for tg in (g.get("imageTags") or [])})}
+
+
+def layanan_ecs(api, cluster: str) -> dict[str, Any] | None:
+    """Cluster ECS bernama `cluster`, layanannya, image task-nya, dan aturan skalanya."""
+    cl = (api.panggil("ecs", "describe-clusters", "--clusters", cluster).get("clusters") or [])
+    cl = next((c for c in cl if c.get("status") == "ACTIVE"), None)
+    if not cl:
+        return None
+    arns = api.panggil("ecs", "list-services", "--cluster", cluster).get("serviceArns", []) or []
+    layanan = []
+    if arns:
+        for s in api.panggil("ecs", "describe-services", "--cluster", cluster, "--services", *arns).get("services", []):
+            if s.get("status") != "ACTIVE":
+                continue
+            td = api.panggil("ecs", "describe-task-definition", "--task-definition", s.get("taskDefinition")) \
+                .get("taskDefinition") or {}
+            wadah = (td.get("containerDefinitions") or [{}])[0]
+            nama = s.get("serviceName")
+            rid = f"service/{cluster}/{nama}"
+            target = (api.panggil("application-autoscaling", "describe-scalable-targets", "--service-namespace", "ecs",
+                                  "--resource-ids", rid).get("ScalableTargets") or [None])[0]
+            kebijakan = api.panggil("application-autoscaling", "describe-scaling-policies", "--service-namespace", "ecs",
+                                    "--resource-id", rid).get("ScalingPolicies", [])
+            layanan.append({
+                "nama": nama, "arn": s.get("serviceArn"), "jenis": s.get("launchType"),
+                "diinginkan": s.get("desiredCount"), "berjalan": s.get("runningCount"),
+                "image": wadah.get("image"),
+                "target_group": [lb.get("targetGroupArn") for lb in s.get("loadBalancers", [])],
+                "skala": {"min": target.get("MinCapacity"), "maks": target.get("MaxCapacity")} if target else None,
+                "kebijakan": [((p.get("TargetTrackingScalingPolicyConfiguration") or {})
+                               .get("PredefinedMetricSpecification") or {}).get("PredefinedMetricType")
+                              for p in kebijakan if p.get("PolicyType") == "TargetTrackingScaling"],
+            })
+    return {"nama": cl.get("clusterName"), "arn": cl.get("clusterArn"), "layanan": sorted(layanan, key=lambda x: x["nama"])}

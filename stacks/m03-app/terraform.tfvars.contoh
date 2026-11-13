@@ -1,0 +1,4 @@
+nim        = "121450001"
+kelompok   = "k03"
+cidr_saya  = "36.70.1.2/32" # keluaran `koma ip`
+jumlah_web = 2              # 1 bila kuota vCPU akun < 6

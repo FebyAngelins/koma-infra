@@ -155,8 +155,9 @@ def cmd_verifier(a) -> int:
     ident = _identitas()
     if not re.fullmatch(r"https://[A-Za-z0-9.-]+(/.*)?", a.url):
         raise Galat("URL verifier harus https://... (dari dosen).")
-    if not re.fullmatch(r"[0-9a-f]{24}", a.token):
-        raise Galat("Token harus 24 karakter heksadesimal (dari dosen).")
+    # Dinonaktifkan atas instruksi dosen: format token verifier kini bukan heksadesimal.
+    #if not re.fullmatch(r"[0-9a-f]{24}", a.token):
+        #raise Galat("Token harus 24 karakter heksadesimal (dari dosen).")
     IDENTITAS.write_text(json.dumps({**ident, "verifier_url": a.url, "token": a.token}, indent=2) + "\n",
                          encoding="utf-8")
     _cetak("Alamat verifier dan token disimpan di .koma/identitas.json (tidak di-commit).")
@@ -420,6 +421,31 @@ def cmd_showback(a) -> int:
     return 0
 
 
+def cmd_pesan(a) -> int:
+    url = (a.url if a.url.startswith("http") else "http://" + a.url).rstrip("/")
+    gerai = ("G-01", "G-02", "G-03", "G-04")
+    hasil_kirim = []
+    for i in range(1, a.jumlah + 1):
+        badan = json.dumps({"gerai": gerai[i % len(gerai)], "total": 25000 + 1500 * i}).encode()
+        req = urllib.request.Request(url + "/pesanan", data=badan, method="POST",
+                                     headers={"content-type": "application/json"})
+        try:
+            with urllib.request.urlopen(req, timeout=10) as r:  # noqa: S310 (ALB milik sendiri)
+                isi = json.loads(r.read().decode())
+                hasil_kirim.append({"kode": r.status, "id_pesanan": isi.get("id_pesanan"), "versi": isi.get("versi")})
+        except urllib.error.HTTPError as exc:
+            hasil_kirim.append({"kode": exc.code, "galat": exc.read().decode(errors="replace")[:200]})
+        except (urllib.error.URLError, OSError) as exc:
+            hasil_kirim.append({"kode": None, "galat": str(exc)})
+    for h in hasil_kirim:
+        _cetak(f"  {h['kode']}  {h.get('id_pesanan') or h.get('galat')}  {h.get('versi') or ''}")
+    sukses = sum(1 for h in hasil_kirim if h["kode"] == 202)
+    path = _tulis_koma(f"pesan-{a.modul}.json", {"url": url, "terkirim": sukses, "gagal": len(hasil_kirim) - sukses,
+                                                "pesan": hasil_kirim})
+    _cetak(f"Diterima layanan: {sukses} dari {len(hasil_kirim)}. Ringkasan: {path.relative_to(AKAR)}")
+    return 0 if sukses == len(hasil_kirim) else 1
+
+
 def buat_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(prog="koma", description=f"Alat praktikum Komputasi Awan (versi {VERSI}).")
     sub = ap.add_subparsers(dest="perintah", required=True)
@@ -470,6 +496,11 @@ def buat_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("showback", help="M07: resource bertag dikelompokkan per lingkungan dan cost-center")
     p.add_argument("modul", nargs="?", default="m07", help="modul (bawaan m07) atau 'semua'")
     p.set_defaults(fn=cmd_showback)
+    p = sub.add_parser("pesan", help="M08: kirim pesanan sintetis ke <url>/pesanan (API di ECS)")
+    p.add_argument("url")
+    p.add_argument("--jumlah", type=int, default=5)
+    p.add_argument("--modul", default="m08")
+    p.set_defaults(fn=cmd_pesan)
     p = sub.add_parser("arsip", help="buat koma-module-NN.zip dari tag mNN")
     p.add_argument("modul")
     p.set_defaults(fn=cmd_arsip)
