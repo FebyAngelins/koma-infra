@@ -95,7 +95,7 @@ Jalur mana yang dugaan pre-lab Anda berbeda dengan kode, dan mengapa: `web → w
 | `vpc_id` | `vpc-08b317e54e0af6fe8` | |
 | `subnet_privat_ids` | `subnet-0ff89cf97e6f33a99`, `subnet-0c4db0dad37c1248e` | |
 | `url_lb` (nama DNS ALB) | `koma-123450039-m03-1821958404.ap-southeast-2.elb.amazonaws.com` | |
-| ID instance web-1 | | |
+| ID instance web-1 | `i-0bb239ad7a27d161f` | |
 | `ip_privat` web-1 | `10.30.10.218` | |
 
 | Hal | Isi |
