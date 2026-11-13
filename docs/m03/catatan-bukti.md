@@ -113,12 +113,12 @@ Apa yang tetap dan apa yang berganti; di mana titik masuk yang tidak boleh berub
 
 | Hal | Isi |
 |---|---|
-| Ringkasan `tofu destroy` stack app | |
-| Ringkasan `tofu destroy` stack jaringan | |
-| `bersih_akhir` dan `Tugas lulus` pada potret 5 | |
-| `koma sisa`: resource bertag, instance tanpa `managed-by`, fondasi | |
+| Ringkasan `tofu destroy` stack app | `Destroy complete! Resources: 16 destroyed.` (13 Nov, setelah Latihan 3.1) |
+| Ringkasan `tofu destroy` stack jaringan | `Destroy complete! Resources: 13 destroyed.` |
+| `bersih_akhir` dan `Tugas lulus` pada potret 5 | tidak terbaca: `koma cek m03` → `403 Forbidden`, dilewati atas arahan dosen. Bukti manual: `describe-vpcs` tag modul=m03 kosong, 6 instance `terminated`, ALB `LoadBalancerNotFound` |
+| `koma sisa`: resource bertag, instance tanpa `managed-by`, fondasi | 25 ARN bertag tampil (6 instance terminated, aturan SG, SG bawaan, 6 volume) karena jeda daftar tag sekitar 1 jam; dicek langsung: tidak ada VPC, instance, atau ALB aktif. Instance tanpa `managed-by`: 0; snapshot sisa AMI: 0 |
 
-Mengapa stack aplikasi dibongkar lebih dulu (satu sampai dua kalimat):
+Mengapa stack aplikasi dibongkar lebih dulu (satu sampai dua kalimat): stack aplikasi adalah consumer yang membaca output jaringan lewat remote state dan antarmuka jaringan server serta ALB menempel di subnet dan security group VPC, jadi AWS menolak menghapus subnet atau IGW yang masih dipakai (DependencyViolation). Membongkar mengikuti arah ketergantungan, yaitu app dulu lalu jaringan, menjaga kontrak output tetap ada selama consumer masih hidup.
 
 ## Catatan Tugas
 
@@ -150,9 +150,9 @@ Pemetaan komponen E1:
 |---|---|
 | `cidr_vpc` di `stacks/m03-network/kasus.tfvars` (rujuk `K-03-…`) | `10.41.0.0/16` (K-03-001) |
 | `jumlah_web` di `stacks/m03-app/kasus.tfvars` (rujuk `K-03-…`) | `2` (K-03-002) |
-| `tofu output` stack jaringan dengan nilai kasus | |
-| `koma sehat` ke ALB kasus (detik) | |
-| Jawaban `/versi` | |
-| Hasil potret 6 dan potret 7 | |
+| `tofu output` stack jaringan dengan nilai kasus | `cidr_vpc = "10.41.0.0/16"`, `vpc_id = "vpc-070321059a6142172"`, `subnet_publik_ids = ["subnet-0b37da7cfe6fc21a5", "subnet-0b010eab5cc9189bf"]`, `subnet_privat_ids = ["subnet-0144ade19d07b4444", "subnet-0990f77da6d52ffb4"]` (plan 13 to add, apply 13 added; app 16 added: web-1 `10.41.10.115`, web-2 `10.41.11.170`, db `10.41.10.247`) |
+| `koma sehat` ke ALB kasus (detik) | `SEHAT setelah 0.6 detik: {'status': 'ok'}` (`koma-123450039-m03-244406654.ap-southeast-2.elb.amazonaws.com`) |
+| Jawaban `/versi` | `{"versi": "3.0.0", "peran": "web", "host": "ip-10-41-10-115.ap-southeast-2.compute.internal"}` |
+| Hasil potret 6 dan potret 7 | keduanya `verifier menolak (403): Forbidden` (13 Nov), dilewati atas arahan dosen. Destroy kasus: app 16 destroyed, jaringan 13 destroyed; setelahnya VPC m03 kosong dan ALB `LoadBalancerNotFound` |
 | Tautan *pull request* `modul-03` → `main` | |
 | NIM peninjau dan tanggal persetujuan | |
