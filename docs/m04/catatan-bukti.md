@@ -27,8 +27,8 @@ Satu baris per `koma cek m04`. Potret aktif terakhir sebelum destroy harus lulus
 |---|---|---|---|---|
 | 1 | B.6 | state di S3 + volume + db pertama | 15 Nov, sekitar 21.00 | tidak terambil: `koma cek m04` → `verifier menolak (403): Forbidden` (sama seperti M03; potret dilewati atas arahan dosen) |
 | 2 | C.5.3 | + bucket arsip, laporan v1 | 15 Nov | tidak terambil: `403 Forbidden` |
-| 3 | D.3.3 | volume sama + db baru, laporan v2 | | |
-| 4 | E.2 | bersih (bucket state tetap) | | |
+| 3 | D.3.3 | volume sama + db baru, laporan v2 | 15 Nov | tidak terambil: `403 Forbidden` |
+| 4 | E.2 | bersih (bucket state tetap) | 15 Nov | tidak terambil: `403 Forbidden` |
 | 5 | Tugas Langkah 3 | nilai kasus, versi 4.2.0 | | |
 | 6 | Tugas Langkah 4 | nilai kasus, versi 4.3.0 | | |
 | 7 | Tugas Langkah 5 | bersih lagi | | |
@@ -98,11 +98,11 @@ Insiden saat D.2 (15 Nov 2026): apply pertama pukul 21:14:49 WIB melepas attachm
 | Hal | Isi |
 |---|---|
 | Ringkasan `tofu destroy` stack `m04-data` | |
-| `tofu state list` sesudah destroy; apakah `m04/data.tfstate` masih ada di bucket | |
-| `bersih_akhir` dan `Tugas lulus` pada potret 4 | |
-| `koma sisa`: resource bertag, fondasi, instance tanpa `managed-by` | |
+| `tofu state list` sesudah destroy; apakah `m04/data.tfstate` masih ada di bucket | `m04/data.tfstate` tetap ada di bucket state dengan 19 versi (sebelumnya 16): state yang benar sesudah destroy adalah state kosong, bukan state yang hilang |
+| `bersih_akhir` dan `Tugas lulus` pada potret 4 | tidak terambil: `koma cek m04` → `verifier menolak (403): Forbidden`. Bukti manual: `describe-volumes` tag modul=m04 → `[]` |
+| `koma sisa`: resource bertag, fondasi, instance tanpa `managed-by` | 8 ARN bertag (4 instance dan 4 volume yang baru dihapus, jeda daftar tag sekitar 1 jam; `describe-volumes` sudah kosong); Fondasi 1: `koma-123450039-tfstate-<akun>`; instance tanpa `managed-by` 0; snapshot sisa AMI 0 |
 
-Mengapa bucket state tidak ikut dibongkar (satu sampai dua kalimat):
+Mengapa bucket state tidak ikut dibongkar (satu sampai dua kalimat): bucket state milik stack fondasi `m00-state` yang hidup selama kursus, dan ia menyimpan state (kosong) serta riwayat versi `m04-data` yang dibaca lagi oleh apply berikutnya di Tugas dari komputer mana pun; menghapusnya berarti kehilangan catatan dan riwayat itu, dan bucket kosong praktis tidak menambah tagihan.
 
 ## Catatan Tugas
 
