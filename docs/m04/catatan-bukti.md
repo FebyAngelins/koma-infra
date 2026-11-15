@@ -49,16 +49,16 @@ Mengapa state stack `m00-state` sendiri tidak disimpan di bucket yang dibuatnya 
 
 | Hal | Isi |
 |---|---|
-| `local.az` yang dipakai | |
-| Ringkasan plan dan apply B.3 (state lokal) | |
-| ID volume, ukuran, enkripsi, `DeleteOnTermination` (`describe-volumes`) | |
-| ID server db pertama | |
-| Jawaban `tofu init -migrate-state` dan hasilnya | |
-| Versi `m04/data.tfstate` setelah migrasi (`list-object-versions`) | |
-| `tofu state list` dan `tofu plan` setelah state lokal dihapus | |
+| `local.az` yang dipakai | `ap-southeast-2a` |
+| Ringkasan plan dan apply B.3 (state lokal) | `Plan: 3 to add, 0 to change, 0 to destroy.`; `Apply complete! Resources: 3 added, 0 changed, 0 destroyed.` |
+| ID volume, ukuran, enkripsi, `DeleteOnTermination` (`describe-volumes`) | `vol-0dc22177bf89c8b7f`, 1 GiB, `encrypted: true`, terpasang di `/dev/sdf` dengan `DeleteOnTermination: false` (root disk 8 GiB di `/dev/xvda` bernilai `true`; volume percobaan pertama `vol-0179cf3e7e3ecc40a` ikut di-destroy) |
+| ID server db pertama | `i-0c929243b1f21ce62` (tanpa IP publik). Percobaan pertama `i-0f6c0b02e69e11c72` mendapat IP publik karena subnet bawaan `MapPublicIpOnLaunch=true` (sisa Modul 02); subnet bawaan diubah ke `false`, ketiga resource di-destroy dan dibangun ulang |
+| Jawaban `tofu init -migrate-state` dan hasilnya | `yes` pada "Do you want to copy existing state to the new backend?"; `Successfully configured the backend "s3"!` (didahului `Releasing state lock`) |
+| Versi `m04/data.tfstate` setelah migrasi (`list-object-versions`) | 1 versi: `m04/data.tfstate` IsLatest `True`, 10621 byte, 2026-11-15T13:53:51Z; tampak juga versi lama `m04/data.tfstate.tflock` (256 byte, IsLatest `False`), jejak kunci yang dipasang dan dilepas selama migrasi |
+| `tofu state list` dan `tofu plan` setelah state lokal dihapus | `tofu state list` tetap menampilkan `aws_ebs_volume.data`, `aws_instance.db`, `aws_volume_attachment.data` dan tiga data source; `tofu plan`: `No changes. Your infrastructure matches the configuration.` lalu `Releasing state lock` |
 | Baris `KOMA-PENANDA` (B.5) | |
 
-Bukti bahwa state tidak lagi berada di folder `stacks/m04-data` (satu kalimat):
+Bukti bahwa state tidak lagi berada di folder `stacks/m04-data` (satu kalimat): setelah `terraform.tfstate` dan `terraform.tfstate.backup` dihapus dari folder, `tofu plan` tetap `No changes` dan memasang serta melepas kunci (`Releasing state lock`), artinya state dibaca dari `m04/data.tfstate` di bucket S3.
 
 ## Catatan Bagian C
 
