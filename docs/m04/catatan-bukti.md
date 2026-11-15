@@ -26,7 +26,7 @@ Satu baris per `koma cek m04`. Potret aktif terakhir sebelum destroy harus lulus
 | Potret | Langkah | Keadaan | Waktu (WIB) | Hasil penting (`Latihan lulus` / `Tugas lulus`, cek yang gagal) |
 |---|---|---|---|---|
 | 1 | B.6 | state di S3 + volume + db pertama | 15 Nov, sekitar 21.00 | tidak terambil: `koma cek m04` → `verifier menolak (403): Forbidden` (sama seperti M03; potret dilewati atas arahan dosen) |
-| 2 | C.5.3 | + bucket arsip, laporan v1 | | |
+| 2 | C.5.3 | + bucket arsip, laporan v1 | 15 Nov | tidak terambil: `403 Forbidden` |
 | 3 | D.3.3 | volume sama + db baru, laporan v2 | | |
 | 4 | E.2 | bersih (bucket state tetap) | | |
 | 5 | Tugas Langkah 3 | nilai kasus, versi 4.2.0 | | |
@@ -64,22 +64,22 @@ Bukti bahwa state tidak lagi berada di folder `stacks/m04-data` (satu kalimat): 
 
 | Hal | Isi |
 |---|---|
-| Nama bucket arsip (dengan `<akun>`) | |
-| Ringkasan plan C.5.1 | |
-| Tiga aturan lifecycle (C.5.2) | |
-| Versi laporan setelah C.5 | |
-| Jumlah versi state pada potret 2 | |
+| Nama bucket arsip (dengan `<akun>`) | `koma-123450039-m04-arsip-<akun>` |
+| Ringkasan plan C.5.1 | `Plan: 6 to add, 0 to change, 0 to destroy.`; `Apply complete! Resources: 6 added` (bucket, versioning, enkripsi, blok publik, lifecycle, objek laporan) |
+| Tiga aturan lifecycle (C.5.2) | `versi-lama Enabled` (semua objek, noncurrent 30 hari); `laporan-dingin Enabled laporan/` (transisi STANDARD_IA hari ke-30); `sementara Enabled tmp/` (kedaluwarsa 7 hari) |
+| Versi laporan setelah C.5 | 1 versi: `laporan/ringkasan-harian.csv` VersionId `SubK.JUnDg1XOQO4.UGWIdqzX7yv.BBY`, IsLatest `True`, 64 byte |
+| Jumlah versi state pada potret 2 | 4 versi `m04/data.tfstate` (migrasi B.4, plan dan apply B.5, apply C.5.1); potret 2 sendiri tidak terambil (`403`) |
 
-Mengapa aturan `laporan-dingin` tidak akan memindahkan objek laporan Anda:
+Mengapa aturan `laporan-dingin` tidak akan memindahkan objek laporan Anda: objek laporan hanya 64 byte, jauh di bawah ukuran minimum 128 KB yang dipindahkan lifecycle ke STANDARD_IA, sehingga S3 melewatinya (memindahkan objek sekecil itu justru lebih mahal karena IA menagih minimal 128 KB per objek).
 
 ## Catatan Bagian D
 
 | Hal | Sebelum (B.5) | Sesudah (D.3) |
 |---|---|---|
-| ID server db | | |
-| ID volume data | | |
-| Baris `KOMA-PENANDA` | | |
-| Versi laporan (jumlah) | | |
+| ID server db | `i-0c929243b1f21ce62` | |
+| ID volume data | `vol-0dc22177bf89c8b7f` | |
+| Baris `KOMA-PENANDA` | `dibuat_oleh=i-0c929243b1f21ce62 waktu=2026-11-15T13:50:56Z sekarang=i-0c929243b1f21ce62 versi=4.0.0 baris_riwayat=1` | |
+| Versi laporan (jumlah) | 1 | |
 
 | Hal | Isi |
 |---|---|
