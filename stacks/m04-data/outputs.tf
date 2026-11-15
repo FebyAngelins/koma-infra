@@ -11,4 +11,6 @@ output "perintah_penanda" {
   value       = "aws ec2 get-console-output --instance-id ${aws_instance.db.id} --latest --output text"
 }
 
-# TODO C.4: bucket_arsip.
+output "bucket_arsip" {
+  value = aws_s3_bucket.arsip.id
+}

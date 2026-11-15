@@ -67,8 +67,85 @@ resource "aws_volume_attachment" "data" {
   stop_instance_before_detaching = true
 }
 
-# TODO C.1  aws_s3_bucket.arsip ("${local.awalan}-arsip-<ID akun>", force_destroy = true) beserta
-#           versioning, enkripsi AES256, dan public access block
-# TODO C.2  aws_s3_bucket_lifecycle_configuration.arsip: versi lama kedaluwarsa var.retensi_versi_hari,
-#           laporan/ pindah ke STANDARD_IA setelah 30 hari, tmp/ kedaluwarsa 7 hari
-# TODO C.3  aws_s3_object.laporan (laporan/ringkasan-harian.csv, isinya memuat var.versi)
+# ----------------------------------------------------------------- object storage
+
+resource "aws_s3_bucket" "arsip" {
+  bucket = "${local.awalan}-arsip-${data.aws_caller_identity.saya.account_id}"
+  # Praktikum: izinkan destroy walaupun berisi versi objek.
+  force_destroy = true
+  tags          = { Name = "${local.awalan}-arsip", peran = "arsip" }
+}
+
+resource "aws_s3_bucket_versioning" "arsip" {
+  bucket = aws_s3_bucket.arsip.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "arsip" {
+  bucket = aws_s3_bucket.arsip.id
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "arsip" {
+  bucket                  = aws_s3_bucket.arsip.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+# Tiga aturan lifecycle: versi lama, laporan dingin, dan berkas sementara.
+resource "aws_s3_bucket_lifecycle_configuration" "arsip" {
+  bucket     = aws_s3_bucket.arsip.id
+  depends_on = [aws_s3_bucket_versioning.arsip]
+
+  rule {
+    id     = "versi-lama"
+    status = "Enabled"
+    filter {}
+    noncurrent_version_expiration {
+      noncurrent_days = var.retensi_versi_hari
+    }
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+  }
+
+  rule {
+    id     = "laporan-dingin"
+    status = "Enabled"
+    filter {
+      prefix = "laporan/"
+    }
+    transition {
+      days          = 30
+      storage_class = "STANDARD_IA"
+    }
+  }
+
+  rule {
+    id     = "sementara"
+    status = "Enabled"
+    filter {
+      prefix = "tmp/"
+    }
+    expiration {
+      days = 7
+    }
+  }
+}
+
+# Isi laporan memuat versi db: setiap rilis menambah versi objek, bukan menimpanya.
+resource "aws_s3_object" "laporan" {
+  bucket       = aws_s3_bucket.arsip.id
+  key          = "laporan/ringkasan-harian.csv"
+  content      = "tanggal,versi_db,catatan\n2026-11-06,${var.versi},contoh laporan harian\n"
+  content_type = "text/csv"
+  depends_on   = [aws_s3_bucket_versioning.arsip]
+}

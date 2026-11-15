@@ -25,7 +25,7 @@ Satu baris per `koma cek m04`. Potret aktif terakhir sebelum destroy harus lulus
 
 | Potret | Langkah | Keadaan | Waktu (WIB) | Hasil penting (`Latihan lulus` / `Tugas lulus`, cek yang gagal) |
 |---|---|---|---|---|
-| 1 | B.6 | state di S3 + volume + db pertama | | |
+| 1 | B.6 | state di S3 + volume + db pertama | 15 Nov, sekitar 21.00 | tidak terambil: `koma cek m04` → `verifier menolak (403): Forbidden` (sama seperti M03; potret dilewati atas arahan dosen) |
 | 2 | C.5.3 | + bucket arsip, laporan v1 | | |
 | 3 | D.3.3 | volume sama + db baru, laporan v2 | | |
 | 4 | E.2 | bersih (bucket state tetap) | | |
@@ -56,7 +56,7 @@ Mengapa state stack `m00-state` sendiri tidak disimpan di bucket yang dibuatnya 
 | Jawaban `tofu init -migrate-state` dan hasilnya | `yes` pada "Do you want to copy existing state to the new backend?"; `Successfully configured the backend "s3"!` (didahului `Releasing state lock`) |
 | Versi `m04/data.tfstate` setelah migrasi (`list-object-versions`) | 1 versi: `m04/data.tfstate` IsLatest `True`, 10621 byte, 2026-11-15T13:53:51Z; tampak juga versi lama `m04/data.tfstate.tflock` (256 byte, IsLatest `False`), jejak kunci yang dipasang dan dilepas selama migrasi |
 | `tofu state list` dan `tofu plan` setelah state lokal dihapus | `tofu state list` tetap menampilkan `aws_ebs_volume.data`, `aws_instance.db`, `aws_volume_attachment.data` dan tiga data source; `tofu plan`: `No changes. Your infrastructure matches the configuration.` lalu `Releasing state lock` |
-| Baris `KOMA-PENANDA` (B.5) | |
+| Baris `KOMA-PENANDA` (B.5) | `KOMA-PENANDA dibuat_oleh=i-0c929243b1f21ce62 waktu=2026-11-15T13:50:56Z sekarang=i-0c929243b1f21ce62 versi=4.0.0 baris_riwayat=1` |
 
 Bukti bahwa state tidak lagi berada di folder `stacks/m04-data` (satu kalimat): setelah `terraform.tfstate` dan `terraform.tfstate.backup` dihapus dari folder, `tofu plan` tetap `No changes` dan memasang serta melepas kunci (`Releasing state lock`), artinya state dibaca dari `m04/data.tfstate` di bucket S3.
 
