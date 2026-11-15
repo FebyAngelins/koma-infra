@@ -38,7 +38,7 @@ Satu baris per `koma cek m04`. Potret aktif terakhir sebelum destroy harus lulus
 | Hal | Isi |
 |---|---|
 | Nama bucket state (dengan `<akun>`) | `koma-123450039-tfstate-<akun>` |
-| Ringkasan plan dan apply `m00-state` | |
+| Ringkasan plan dan apply `m00-state` | `Plan: 5 to add` (bucket, versioning, enkripsi, blok publik, lifecycle `versi-lama-90-hari`); apply `5 added`, output `bucket = "koma-123450039-tfstate-<akun>"` |
 | Versioning, enkripsi, blok publik (A.3.1) | `Status: Enabled`; `SSEAlgorithm: AES256`; `BlockPublicAcls`, `IgnorePublicAcls`, `BlockPublicPolicy`, `RestrictPublicBuckets` semuanya `true`; `KeyCount` kosong (`null`, bucket belum berisi objek) |
 | Isi `stacks/m04-data/backend.hcl` (dengan `<akun>`) | `bucket = "koma-123450039-tfstate-<akun>"`, `key = "m04/data.tfstate"`, `region = "ap-southeast-2"`, `encrypt = true`, `use_lockfile = true` |
 | `terraform.tfstate` ada di `stacks/m00-state` dan tidak ter-commit (ya/tidak) | ya: berkas ada di folder, `git status` hanya menampilkan `.terraform.lock.hcl` |
@@ -97,7 +97,7 @@ Insiden saat D.2 (15 Nov 2026): apply pertama pukul 21:14:49 WIB melepas attachm
 
 | Hal | Isi |
 |---|---|
-| Ringkasan `tofu destroy` stack `m04-data` | |
+| Ringkasan `tofu destroy` stack `m04-data` | `9 to destroy` (sesi kelas, lalu sekali lagi untuk nilai kasus dengan `-var-file=kasus.tfvars`); bucket state tidak ada di daftar; sesudahnya `describe-volumes` tag modul=m04 → `[]` |
 | `tofu state list` sesudah destroy; apakah `m04/data.tfstate` masih ada di bucket | `m04/data.tfstate` tetap ada di bucket state dengan 19 versi (sebelumnya 16): state yang benar sesudah destroy adalah state kosong, bukan state yang hilang |
 | `bersih_akhir` dan `Tugas lulus` pada potret 4 | tidak terambil: `koma cek m04` → `verifier menolak (403): Forbidden`. Bukti manual: `describe-volumes` tag modul=m04 → `[]` |
 | `koma sisa`: resource bertag, fondasi, instance tanpa `managed-by` | 8 ARN bertag (4 instance dan 4 volume yang baru dihapus, jeda daftar tag sekitar 1 jam; `describe-volumes` sudah kosong); Fondasi 1: `koma-123450039-tfstate-<akun>`; instance tanpa `managed-by` 0; snapshot sisa AMI 0 |
