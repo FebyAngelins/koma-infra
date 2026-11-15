@@ -2,10 +2,10 @@
 
 | Hal | Isi |
 |---|---|
-| Nama | |
-| NIM | |
-| Kelompok | `k0_` |
-| Kasus | |
+| Nama | Feby Angelina |
+| NIM | 123450039 |
+| Kelompok | `k01` |
+| Kasus | k01 Klinik Sehat Lampung |
 | Peninjau PR `m04` (NIM) | |
 
 Isi berkas ini sambil mengerjakan prosedur. Angka, ID, dan waktu disalin dari keluaran perintah Anda sendiri; contoh di naskah hanya gambaran. Jangan menulis token verifier, isi state, atau 12 digit ID akun AWS; tulis nama bucket sebagai `koma-<nim>-tfstate-<akun>`. Berkas ini ikut di-commit dan masuk `koma-module-04.zip`.
@@ -14,10 +14,10 @@ Isi berkas ini sambil mengerjakan prosedur. Angka, ID, dan waktu disalin dari ke
 
 | Hal | Isi |
 |---|---|
-| Ringkasan plan `m00-verifier` setelah `izin-m04.tf` (P.2) | |
-| `aws iam list-role-policies --role-name koma-verifier-ro` | |
-| State `m00-verifier` ada di komputer ini, atau diimpor (sebutkan) | |
-| Komputer yang dipakai sesi ini (PC lab nomor / laptop) | |
+| Ringkasan plan `m00-verifier` setelah `izin-m04.tf` (P.2) | `izin-m04.tf` sudah ikut diterapkan bersama verifier di Modul 03 (apply `3 added`: role, `koma-baca-metadata`, `koma-baca-daftar-objek`), sehingga tidak ada penambahan di sesi ini |
+| `aws iam list-role-policies --role-name koma-verifier-ro` | `["koma-baca-daftar-objek", "koma-baca-metadata"]` |
+| State `m00-verifier` ada di komputer ini, atau diimpor (sebutkan) | ada di komputer ini (tidak diimpor) |
+| Komputer yang dipakai sesi ini (PC lab nomor / laptop) | laptop pribadi (macOS), 15 Nov 2026 |
 
 ## Langkah dan bukti
 
@@ -37,13 +37,13 @@ Satu baris per `koma cek m04`. Potret aktif terakhir sebelum destroy harus lulus
 
 | Hal | Isi |
 |---|---|
-| Nama bucket state (dengan `<akun>`) | |
+| Nama bucket state (dengan `<akun>`) | `koma-123450039-tfstate-<akun>` |
 | Ringkasan plan dan apply `m00-state` | |
-| Versioning, enkripsi, blok publik (A.3.1) | |
-| Isi `stacks/m04-data/backend.hcl` (dengan `<akun>`) | |
-| `terraform.tfstate` ada di `stacks/m00-state` dan tidak ter-commit (ya/tidak) | |
+| Versioning, enkripsi, blok publik (A.3.1) | `Status: Enabled`; `SSEAlgorithm: AES256`; `BlockPublicAcls`, `IgnorePublicAcls`, `BlockPublicPolicy`, `RestrictPublicBuckets` semuanya `true`; `KeyCount` kosong (`null`, bucket belum berisi objek) |
+| Isi `stacks/m04-data/backend.hcl` (dengan `<akun>`) | `bucket = "koma-123450039-tfstate-<akun>"`, `key = "m04/data.tfstate"`, `region = "ap-southeast-2"`, `encrypt = true`, `use_lockfile = true` |
+| `terraform.tfstate` ada di `stacks/m00-state` dan tidak ter-commit (ya/tidak) | ya: berkas ada di folder, `git status` hanya menampilkan `.terraform.lock.hcl` |
 
-Mengapa state stack `m00-state` sendiri tidak disimpan di bucket yang dibuatnya (satu sampai dua kalimat):
+Mengapa state stack `m00-state` sendiri tidak disimpan di bucket yang dibuatnya (satu sampai dua kalimat): bucket itu belum ada ketika stack ini pertama kali di-apply, sehingga state-nya tidak mungkin ditulis ke sana (masalah ayam dan telur); selain itu bila state-nya ikut tersimpan di bucket yang sama, kerusakan atau penghapusan bucket sekaligus menghilangkan catatan untuk membangunnya kembali.
 
 ## Catatan Bagian B
 
