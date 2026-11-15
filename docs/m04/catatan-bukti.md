@@ -6,7 +6,7 @@
 | NIM | 123450039 |
 | Kelompok | `k01` |
 | Kasus | k01 Klinik Sehat Lampung |
-| Peninjau PR `m04` (NIM) | |
+| Peninjau PR `m04` (NIM) | - (tugas individu) |
 
 Isi berkas ini sambil mengerjakan prosedur. Angka, ID, dan waktu disalin dari keluaran perintah Anda sendiri; contoh di naskah hanya gambaran. Jangan menulis token verifier, isi state, atau 12 digit ID akun AWS; tulis nama bucket sebagai `koma-<nim>-tfstate-<akun>`. Berkas ini ikut di-commit dan masuk `koma-module-04.zip`.
 
@@ -125,5 +125,5 @@ Pemetaan data kasus (rujuk Tabel S kasus kelompok):
 | Ringkasan plan Langkah 3 (`size`, `noncurrent_days`) | `tofu plan -var-file=kasus.tfvars`: `9 to add` dengan `size = 4` dan `noncurrent_days = 90`; apply `9 added`; server `i-09422d10cbcb47326` tanpa IP publik (`None`). Langkah 4 (4.2.0 → 4.3.0): `Plan: 2 to add, 1 to change, 2 to destroy.` tanpa `aws_ebs_volume.data`; `Apply complete! Resources: 2 added, 1 changed, 2 destroyed.` |
 | Penanda Langkah 3 dan Langkah 4 | Langkah 3: `KOMA-PENANDA dibuat_oleh=i-09422d10cbcb47326 waktu=2026-11-15T15:41:21Z sekarang=i-09422d10cbcb47326 versi=4.2.0 baris_riwayat=1` (volume baru `vol-08f2af5a3bdc9ef3b`); Langkah 4: `KOMA-PENANDA dibuat_oleh=i-09422d10cbcb47326 waktu=2026-11-15T15:41:21Z sekarang=i-0c7d668ed9646ac72 versi=4.3.0 baris_riwayat=2` (volume sama `vol-08f2af5a3bdc9ef3b`) |
 | Hasil potret 5, 6, dan 7 | ketiganya `verifier menolak (403): Forbidden` (15 Nov), dilewati seperti Modul 03. Setelah `tofu destroy -var-file=kasus.tfvars`: `describe-volumes` tag modul=m04 kosong, `koma sisa` hanya menyisakan bucket state di Fondasi (11 ARN bertag adalah instance dan volume yang baru dihapus, jeda daftar tag ±1 jam), instance tanpa `managed-by` 0 |
-| Tautan *pull request* `modul-04` → `main` | |
-| NIM peninjau dan tanggal persetujuan | |
+| Tautan *pull request* `modul-04` → `main` | https://github.com/FebyAngelins/koma-infra/pull/4 |
+| NIM peninjau dan tanggal persetujuan | tanpa peninjau: tugas individu (seperti Modul 03, atas arahan dosen); di-merge sendiri 15 Nov 2026 |
