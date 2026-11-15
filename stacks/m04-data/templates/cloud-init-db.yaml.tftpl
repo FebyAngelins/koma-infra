@@ -1,0 +1,22 @@
+#cloud-config
+# Server db memformat volume data hanya bila masih kosong, lalu menulis penanda sekali saja.
+# Server pengganti memasang volume yang sama dan melaporkan penanda lama ke log konsol.
+write_files:
+  - path: /usr/local/bin/koma-data.sh
+    permissions: "0755"
+    content: |
+      #!/bin/bash
+      set -euo pipefail
+      DEV=/dev/disk/by-id/nvme-Amazon_Elastic_Block_Store_${replace(volume_id, "-", "")}
+      for i in $(seq 1 60); do [ -e "$DEV" ] && break; sleep 5; done
+      if [ ! -e "$DEV" ]; then echo "KOMA-PENANDA galat: volume ${volume_id} belum terpasang" > /dev/console; exit 1; fi
+      blkid "$DEV" > /dev/null 2>&1 || mkfs.xfs -q "$DEV"
+      mkdir -p /data
+      mount "$DEV" /data
+      TOKEN=$(curl -s -X PUT http://169.254.169.254/latest/api/token -H "X-aws-ec2-metadata-token-ttl-seconds: 60")
+      IID=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-id)
+      [ -f /data/penanda.txt ] || echo "dibuat_oleh=$IID waktu=$(date -u +%FT%TZ)" > /data/penanda.txt
+      echo "versi=${versi} instance=$IID waktu=$(date -u +%FT%TZ)" >> /data/riwayat.txt
+      echo "KOMA-PENANDA $(cat /data/penanda.txt) sekarang=$IID versi=${versi} baris_riwayat=$(wc -l < /data/riwayat.txt)" > /dev/console
+runcmd:
+  - [/usr/local/bin/koma-data.sh]
