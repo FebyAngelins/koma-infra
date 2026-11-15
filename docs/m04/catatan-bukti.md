@@ -76,20 +76,22 @@ Mengapa aturan `laporan-dingin` tidak akan memindahkan objek laporan Anda: objek
 
 | Hal | Sebelum (B.5) | Sesudah (D.3) |
 |---|---|---|
-| ID server db | `i-0c929243b1f21ce62` | |
-| ID volume data | `vol-0dc22177bf89c8b7f` | |
-| Baris `KOMA-PENANDA` | `dibuat_oleh=i-0c929243b1f21ce62 waktu=2026-11-15T13:50:56Z sekarang=i-0c929243b1f21ce62 versi=4.0.0 baris_riwayat=1` | |
-| Versi laporan (jumlah) | 1 | |
+| ID server db | `i-0c929243b1f21ce62` | `i-0881493f07b107c54` (server pengganti percobaan pertama `i-0e8ae2611edd49c17` diganti lagi, lihat catatan di bawah) |
+| ID volume data | `vol-0dc22177bf89c8b7f` | `vol-0dc22177bf89c8b7f` (sama) |
+| Baris `KOMA-PENANDA` | `dibuat_oleh=i-0c929243b1f21ce62 waktu=2026-11-15T13:50:56Z sekarang=i-0c929243b1f21ce62 versi=4.0.0 baris_riwayat=1` | `dibuat_oleh=i-0c929243b1f21ce62 waktu=2026-11-15T13:50:56Z sekarang=i-0881493f07b107c54 versi=4.1.0 baris_riwayat=2` (muncul 21:37:16 WIB) |
+| Versi laporan (jumlah) | 1 | 2: `M7IOHktXLhNUWcZJv8B3JMmIKh2SnuW1` (IsLatest `True`, 4.1.0) dan `SubK.JUnDg1XOQO4.UGWIdqzX7yv.BBY` (`False`, 4.0.0), masing-masing 64 byte |
 
 | Hal | Isi |
 |---|---|
-| Ringkasan plan D.1 (apakah `aws_ebs_volume.data` muncul?) | |
+| Ringkasan plan D.1 (apakah `aws_ebs_volume.data` muncul?) | `Plan: 2 to add, 1 to change, 2 to destroy.`: `aws_instance.db must be replaced` (`user_data # forces replacement`, versi 4.0.0 → 4.1.0), `aws_volume_attachment.data must be replaced` (`instance_id # forces replacement`), `aws_s3_object.laporan will be updated in-place`. `aws_ebs_volume.data` tidak muncul (hanya `Refreshing state`) |
 | Durasi `Destruction complete` attachment dan server, `Creation complete` server dan attachment | |
 | Jam menjawab `yes` dan jam penanda server baru muncul | |
 | RTO penggantian server db (menit:detik) | |
 | `volume_selamat` dan `arsip_berversi` pada potret 3 | |
 
-Apa yang diganti, apa yang tetap, dan apa arti `dibuat_oleh` serta `baris_riwayat`:
+Apa yang diganti, apa yang tetap, dan apa arti `dibuat_oleh` serta `baris_riwayat`: yang diganti adalah server db dan attachment-nya (dan versi objek laporan bertambah), yang tetap adalah volume `vol-0dc22177bf89c8b7f` beserta isinya. `dibuat_oleh=i-0c929243b1f21ce62` masih menyebut server pertama karena `penanda.txt` hanya ditulis bila belum ada dan volume tidak diformat ulang (`blkid` menemukan sistem berkas), sedangkan `sekarang` adalah server baru. `baris_riwayat=2` berarti dua boot yang berhasil memasang volume pernah menulis ke `riwayat.txt`: server pertama (4.0.0) dan server pengganti (4.1.0).
+
+Insiden saat D.2 (15 Nov 2026): apply pertama pukul 21:14:49 WIB melepas attachment (26 s), menghapus server lama (10 s), dan membuat `i-0e8ae2611edd49c17` (16 s), lalu kredensial sesi kedaluwarsa saat attachment baru dibuat. State gagal diunggah (`ExpiredToken`) dan ditulis ke `errored.tfstate`, kunci `m04/data.tfstate.tflock` tertinggal (ID `30a83b4f-…`, Who `angels@MacBook-Air-Feby.local`, OperationTypeApply, 14:14:54 UTC). Pemulihan: kredensial disegarkan, `tofu force-unlock 30a83b4f-…` (sah karena kunci milik apply sendiri yang gagal dan tidak ada operasi lain), `tofu state push errored.tfstate`, lalu plan `1 to add` (attachment) dan apply. Server itu melapor `KOMA-PENANDA galat: volume … belum terpasang` karena skripnya sudah menyerah sebelum attachment ada, sehingga diganti sekali lagi dengan `tofu apply -replace=aws_instance.db` menjadi `i-0881493f07b107c54`, yang berhasil memasang volume lama tanpa memformatnya.
 
 ## Catatan Bagian E
 
