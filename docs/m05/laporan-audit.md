@@ -57,7 +57,9 @@ Satu baris per ID temuan. Untuk `m05-aman`, tulis temuan yang diterima lewat `tr
 | `m05-rawan` | AWS-0124 | LOW | tambahan | tidak langsung: aturan tanpa deskripsi hanya menyulitkan audit |
 | `m05-rawan` | AWS-0131 | HIGH | tambahan | ya: disk root tidak terenkripsi |
 | `m05-rawan` | AWS-0132 | HIGH | 6 | ya: bucket tanpa kunci KMS milik sendiri |
-| `m05-aman` | | | | |
+| `m05-aman` | AWS-0104 (`aws-ec2-no-public-egress-sgr`, `main.tf:147`) | CRITICAL | diterima (`trivy:ignore`) | egress HTTPS 443 ke `0.0.0.0/0` dibutuhkan skrip boot untuk memanggil API SSM dan KMS; VPC bawaan tanpa VPC endpoint dan endpoint berbayar per jam per AZ (K-05) |
+| `m05-aman` | AWS-0089 (`aws-s3-enable-logging`, `main.tf:189-194`) | LOW | diterima (`trivy:ignore`) | bucket praktikum dibongkar tiap sesi; di sistem nyata log akses wajib untuk akuntabilitas |
+| `m05-aman` | AWS-0090 (`aws-s3-enable-versioning`, `main.tf:189-194`) | MEDIUM | diterima (`trivy:ignore`) | bucket praktikum dibongkar tiap sesi; di sistem nyata versioning menjaga integritas laporan |
 
 Temuan Tabel Audit yang **tidak** dilaporkan Trivy: nomor 1 (password di `default` variabel), 2 (password di `user_data`), 3 (output password tanpa `sensitive`), dan 4 (kebijakan role `Action = "*"`). Trivy hanya mencocokkan pola konfigurasi resource per baris kode; ia tidak menelusuri aliran nilai variabel ke template dan output, dan kebijakan IAM inline yang dibangun dengan `jsonencode` tidak diperiksa sebagai dokumen kebijakan. Hanya temuan 5 dan 6 yang tertangkap.
 
@@ -66,9 +68,9 @@ Temuan Tabel Audit yang **tidak** dilaporkan Trivy: nomor 1 (password di `defaul
 | Plan | Jumlah kegagalan | Alamat yang ditolak |
 |---|---|---|
 | `rawan.plan.json` | 6 (`6 tests, 0 passed, 0 warnings, 6 failures`) | `aws_iam_role_policy.api`, `aws_instance.api`, `aws_s3_bucket_policy.laporan`, `aws_vpc_security_group_ingress_rule.ssh`, `output.db_password`, `var.db_password` |
-| `aman.plan.json` | | |
+| `aman.plan.json` | 0 (`6 tests, 6 passed, 0 warnings, 0 failures`) | tidak ada |
 
-Resource yang tercatat *known after apply* pada plan aman dan karena itu tidak terperiksa kebijakan:
+Resource yang tercatat *known after apply* pada plan aman dan karena itu tidak terperiksa kebijakan: `aws_iam_role_policy.dekripsi`. Isi kebijakannya (`policy = (known after apply)`) merujuk ARN `aws_kms_key.m05` yang baru ada setelah apply, sehingga aturan 6 tidak punya dokumen untuk dibaca; seandainya kebijakan itu memakai `kms:*`, plan tetap lolos Conftest dan baru tertangkap verifier (`iam_minimal`) setelah apply. Kebijakan `baca_parameter` tetap terperiksa karena ARN parameter disusun dari `local.arn_parameter` yang sudah diketahui saat plan.
 
 ## Threat Model
 
@@ -86,7 +88,7 @@ Satu baris per `koma cek m05`. Potret aktif terakhir sebelum destroy harus lulus
 
 | Potret | Langkah | Keadaan | Waktu (WIB) | Hasil penting (`Latihan lulus` / `Tugas lulus`, cek yang gagal, versi parameter) |
 |---|---|---|---|---|
-| 1 | D.6 | stack aman berjalan | | |
+| 1 | D.6 | stack aman berjalan | 19-11 | tidak terambil: `verifier menolak (403): Forbidden` |
 | 2 | E.2 | kosong | | |
 | 3 | Tugas Langkah 2 | dibangun ulang | | |
 | 4 | Tugas Langkah 3 | setelah rotasi dan reboot | | |
@@ -96,8 +98,8 @@ Bukti tidak langsung yang hanya dapat diambil selama stack hidup:
 
 | Bukti | Potret 1 | Potret 4 |
 |---|---|---|
-| Baris `KOMA-PENANDA` | | |
-| Kunci tingkat atas `m05/aman.tfstate` | | |
-| `describe-parameters` (tipe, versi) | | |
-| `get-bucket-policy-status` | | |
-| `curl` anonim ke objek laporan | | |
+| Baris `KOMA-PENANDA` | `rahasia dimuat: 600 root dari /koma/123450039/m05/db-password` | |
+| Kunci tingkat atas `m05/aman.tfstate` | `encrypted_data, encryption_version, lineage, meta, serial` | |
+| `describe-parameters` (tipe, versi) | `SecureString`, kunci m05, versi 1 | |
+| `get-bucket-policy-status` | `IsPublic: false` | |
+| `curl` anonim ke objek laporan | `403` | |
