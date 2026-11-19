@@ -2,11 +2,11 @@
 
 | Hal | Isi |
 |---|---|
-| Nama | |
-| NIM | |
-| Kelompok | `k0_` |
-| Kasus | |
-| Peninjau PR `m05` (NIM) | |
+| Nama | Feby Angelina |
+| NIM | 123450039 |
+| Kelompok | `k01` |
+| Kasus | k01 Klinik Sehat Lampung |
+| Peninjau PR `m05` (NIM) | - (tugas individu) |
 | Tautan *pull request* | |
 
 Isi berkas ini sambil mengerjakan prosedur. Jangan menulis password, passphrase state, token verifier, isi state atau plan JSON, atau 12 digit ID akun AWS; tulis nama bucket sebagai `koma-<nim>-m05-laporan-<akun>`. Berkas ini ikut di-commit dan masuk `koma-module-05.zip`.
@@ -15,14 +15,14 @@ Isi berkas ini sambil mengerjakan prosedur. Jangan menulis password, passphrase 
 
 | Hal | Isi |
 |---|---|
-| `tofu apply` stack `m00-pagar` (ringkasan baris terakhir) | |
-| `aws s3control get-public-access-block` (keempat pengaturan) | |
-| `tofu apply` stack `m00-verifier` setelah `izin-m05.tf` (ringkasan) | |
-| Impor yang diperlukan (bila ada) | |
-| Sidik jari passphrase state (8 karakter awal SHA-256, bukan passphrase-nya) | |
+| `tofu apply` stack `m00-pagar` (ringkasan baris terakhir) | `Plan: 1 to add` (`aws_s3_account_public_access_block.akun`), apply `1 added` |
+| `aws s3control get-public-access-block` (keempat pengaturan) | `BlockPublicAcls`, `IgnorePublicAcls`, `BlockPublicPolicy`, `RestrictPublicBuckets` semuanya `true` (sebelum apply: `NoSuchPublicAccessBlockConfiguration`) |
+| `tofu apply` stack `m00-verifier` setelah `izin-m05.tf` (ringkasan) | `Plan: 1 to add` (`aws_iam_role_policy.baca_m05`); `list-role-policies`: `koma-baca-daftar-objek`, `koma-baca-keamanan`, `koma-baca-metadata` |
+| Impor yang diperlukan (bila ada) | tidak ada (state `m00-verifier` ada di laptop ini) |
+| Sidik jari passphrase state (8 karakter awal SHA-256, bukan passphrase-nya) | `64d32c5c` |
 | Tempat Anda menyimpan salinan passphrase (jenis, bukan isinya) | |
-| Komputer yang dipakai sesi ini (PC lab nomor / laptop) | |
-| `conftest --version`, `trivy --version` | |
+| Komputer yang dipakai sesi ini (PC lab nomor / laptop) | laptop pribadi (macOS), 19 Nov 2026 |
+| `conftest --version`, `trivy --version` | Conftest 0.71.1 (OPA 1.21.1), Trivy 0.76.2 |
 
 ## Tabel Audit
 
