@@ -178,6 +178,13 @@ resource "aws_instance" "api" {
   }
 
   tags = { Name = "${local.awalan}-api", peran = "api", versi = var.versi }
+
+  # Filter AMI cocok dengan lebih dari satu image AL2023 terbaru, sehingga ID-nya dapat
+  # berganti antar-plan dan memaksa server diganti. Rotasi rahasia tidak boleh mengganti
+  # server; versi image baru dipasang lewat perubahan versi/user_data, bukan diam-diam.
+  lifecycle {
+    ignore_changes = [ami]
+  }
 }
 
 # ----------------------------------------------------------------- object storage

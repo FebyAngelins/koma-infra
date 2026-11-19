@@ -76,11 +76,11 @@ Resource yang tercatat *known after apply* pada plan aman dan karena itu tidak t
 
 | Butir | Isi untuk API laporan pada kasus kelompok Anda (sebut kode bukti A1–A6) |
 |---|---|
-| Aset | |
-| Aktor ancaman | |
-| Jalur serangan | |
-| Kontrol yang sudah ada | |
-| Risiko sisa | |
+| Aset | Laporan hasil lab, foto klinis, dan rujukan pasien yang diunduh lewat API laporan (A1: rahasia, termasuk data ter-pseudonim); password database RME dan kunci KMS yang melindunginya (A5); state OpenTofu yang memuat password tersebut |
+| Aktor ancaman | Siapa pun di internet yang memegang tautan hasil lab (A6: satu tautan terbuka 11 hari di grup pasien); insider atau akun bekas karyawan yang masih aktif (A3, A6: 41 akun dokter); pihak ketiga dengan akses API atau VPN: 2 laboratorium mitra, 14 asuransi, vendor kios (A4); pemegang sesi `aws login` atau passphrase state |
+| Jalur serangan | Mengunduh objek laporan lewat URL bucket tanpa autentikasi atau tautan tanpa kedaluwarsa; membaca password dari `user_data`, output, plan, atau state teks biasa; memakai kredensial role server yang disusupi untuk membaca resource lain; masuk lewat port admin yang terbuka; memakai akun yang tidak dicabut |
+| Kontrol yang sudah ada | Pagar blok publik tingkat akun dan bucket, SSE-KMS dengan kunci sendiri (rotasi aktif), bucket policy menolak akses tanpa TLS (curl anonim `403`); password dibangkitkan `random_password`, disimpan `SecureString`, dirotasi lewat `putaran_rahasia` (versi 1 → 2); role server hanya `ssm:GetParameter` satu parameter dan `kms:Decrypt` lewat SSM; SG hanya HTTP dari /32 tanpa port admin; IMDSv2; state dan plan terenkripsi AES-GCM; Trivy dan Conftest sebelum apply |
+| Risiko sisa | Egress 443 ke `0.0.0.0/0` diterima (AWS-0104), sehingga server yang disusupi masih dapat mengirim data keluar lewat HTTPS; logging akses dan versioning bucket tidak aktif (AWS-0089, AWS-0090), sehingga akses tidak tercatat untuk jejak audit yang diwajibkan kontrak asuransi (A2); kebijakan `dekripsi` tidak terperiksa Conftest sebelum apply; password juga ada di state dan di `/etc/koma/db.env` server; passphrase state di laptop dan pengelola password menjadi rahasia baru; verifier dengan `ec2:Describe*` masih dapat membaca `user_data`; akun bekas karyawan (A6) dan rotasi 12 kunci API laboratorium (A5) di luar stack ini |
 
 ## Langkah dan bukti
 
@@ -89,17 +89,17 @@ Satu baris per `koma cek m05`. Potret aktif terakhir sebelum destroy harus lulus
 | Potret | Langkah | Keadaan | Waktu (WIB) | Hasil penting (`Latihan lulus` / `Tugas lulus`, cek yang gagal, versi parameter) |
 |---|---|---|---|---|
 | 1 | D.6 | stack aman berjalan | 19-11 | tidak terambil: `verifier menolak (403): Forbidden` |
-| 2 | E.2 | kosong | | |
-| 3 | Tugas Langkah 2 | dibangun ulang | | |
-| 4 | Tugas Langkah 3 | setelah rotasi dan reboot | | |
+| 2 | E.2 | kosong | 19-11 | tidak terambil (`403`); bukti manual: `Destroy complete! Resources: 18 destroyed.`, `describe-instances` m05 running → `[]`, state tetap `encrypted_data`, kunci KMS `PendingDeletion` |
+| 3 | Tugas Langkah 2 | dibangun ulang | 19-11 | tidak terambil (`403`); apply `18 added`, Conftest 0 failures, server `i-08a4d537823561768`, parameter versi 1 |
+| 4 | Tugas Langkah 3 | setelah rotasi dan reboot | 19-11 | tidak terambil (`403`); parameter versi 2 (diubah 09:06:13 WIB), server yang sama di-reboot, `koma sehat` SEHAT 0,4 detik |
 | 5 | Tugas Langkah 5 | kosong | | |
 
 Bukti tidak langsung yang hanya dapat diambil selama stack hidup:
 
 | Bukti | Potret 1 | Potret 4 |
 |---|---|---|
-| Baris `KOMA-PENANDA` | `rahasia dimuat: 600 root dari /koma/123450039/m05/db-password` | |
-| Kunci tingkat atas `m05/aman.tfstate` | `encrypted_data, encryption_version, lineage, meta, serial` | |
-| `describe-parameters` (tipe, versi) | `SecureString`, kunci m05, versi 1 | |
-| `get-bucket-policy-status` | `IsPublic: false` | |
-| `curl` anonim ke objek laporan | `403` | |
+| Baris `KOMA-PENANDA` | `rahasia dimuat: 600 root dari /koma/123450039/m05/db-password` | dua baris `rahasia dimuat: 600 root dari /koma/123450039/m05/db-password` (boot pertama dan setelah reboot) |
+| Kunci tingkat atas `m05/aman.tfstate` | `encrypted_data, encryption_version, lineage, meta, serial` | sama (state tetap terenkripsi) |
+| `describe-parameters` (tipe, versi) | `SecureString`, kunci m05, versi 1 | `SecureString`, versi 2 |
+| `get-bucket-policy-status` | `IsPublic: false` | `IsPublic: false` (konfigurasi bucket tidak berubah) |
+| `curl` anonim ke objek laporan | `403` | `403` (konfigurasi bucket tidak berubah) |
