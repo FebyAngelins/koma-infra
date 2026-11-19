@@ -5,9 +5,44 @@ data "aws_vpc" "bawaan" {
   default = true
 }
 
-# TODO B.2  aws_security_group.legacy (count = var.pertahankan_legacy ? 1 : 0; name "${local.awalan}-legacy",
-#           description "Web lama koma-api (dibuat manual)", VPC bawaan, tag peran = "legacy"),
-#           aws_vpc_security_group_ingress_rule.legacy_http (count; tcp 80 dari var.cidr_saya,
-#           description "HTTP dari kantor"), dan aws_instance.legacy (count; t3.micro, AMI al2023,
-#           SG legacy, tag peran = "legacy" dan versi = "0.9.0", ignore_changes ami dan user data)
-# TODO C.4  aws_vpc_security_group_ingress_rule.legacy_dari_alb (count; HTTP 80 dari SG ALB)
+resource "aws_security_group" "legacy" {
+  count       = var.pertahankan_legacy ? 1 : 0
+  name        = "${local.awalan}-legacy"
+  description = "Web lama koma-api (dibuat manual)"
+  vpc_id      = data.aws_vpc.bawaan.id
+  tags        = { Name = "${local.awalan}-legacy", peran = "legacy" }
+}
+
+resource "aws_vpc_security_group_ingress_rule" "legacy_http" {
+  count             = var.pertahankan_legacy ? 1 : 0
+  security_group_id = aws_security_group.legacy[0].id
+  description       = "HTTP dari kantor"
+  cidr_ipv4         = var.cidr_saya
+  ip_protocol       = "tcp"
+  from_port         = 80
+  to_port           = 80
+}
+
+resource "aws_instance" "legacy" {
+  count                  = var.pertahankan_legacy ? 1 : 0
+  ami                    = data.aws_ami.al2023.id
+  instance_type          = "t3.micro"
+  vpc_security_group_ids = [aws_security_group.legacy[0].id]
+  tags                   = { Name = "${local.awalan}-legacy", peran = "legacy", versi = "0.9.0" }
+
+  lifecycle {
+    # AMI dan user data dipilih kontraktor saat server dibuat; mengubahnya berarti server baru.
+    ignore_changes = [ami, user_data, user_data_base64]
+  }
+}
+
+# C.4 BARU (bukan hasil impor): ALB boleh menjangkau server legacy.
+resource "aws_vpc_security_group_ingress_rule" "legacy_dari_alb" {
+  count                        = var.pertahankan_legacy ? 1 : 0
+  security_group_id            = aws_security_group.legacy[0].id
+  description                  = "HTTP dari ALB"
+  referenced_security_group_id = aws_security_group.alb.id
+  ip_protocol                  = "tcp"
+  from_port                    = 80
+  to_port                      = 80
+}
