@@ -18,6 +18,11 @@ def _tags(daftar: Any) -> dict[str, str]:
     return {t["Key"]: t["Value"] for t in daftar or [] if "Key" in t}
 
 
+def nim_bersama(ident) -> str | None:
+    """NIM penyaring bila akun AWS dipakai bersama (IAM user di akun dosen), selain itu None."""
+    return ident["nim"] if ident.get("akun_bersama") else None
+
+
 def identitas_akun(api) -> dict[str, str]:
     r = api.panggil("sts", "get-caller-identity", region=False)
     return {"akun": str(r.get("Account", "")), "arn": str(r.get("Arn", ""))}
@@ -50,10 +55,14 @@ def instance_modul(api, nim: str, modul: str) -> list[dict[str, Any]]:
     return _instances(api, f"Name=tag:nim,Values={nim}", f"Name=tag:modul,Values={modul}")
 
 
-def instance_liar(api) -> list[dict[str, Any]]:
-    """Instance hidup tanpa tag managed-by (dibuat lewat konsol atau CLI, bukan kode)."""
+def instance_liar(api, nim: str | None = None) -> list[dict[str, Any]]:
+    """Instance hidup tanpa tag managed-by (dibuat lewat konsol atau CLI, bukan kode).
+
+    Di akun bersama (`nim` diisi) hanya instance yang bertag `nim` itu atau bernama memuat NIM itu
+    yang dihitung; instance mahasiswa lain di akun yang sama bukan tanggung jawab NIM ini."""
     return [{"id": i["id"], "nama": i["nama"], "state": i["state"]}
-            for i in _instances(api) if "managed-by" not in i["tags"]]
+            for i in _instances(api) if "managed-by" not in i["tags"]
+            and (nim is None or i["tags"].get("nim") == nim or nim in i["nama"])]
 
 
 def images_modul(api, nim: str, modul: str) -> list[dict[str, Any]]:
@@ -76,9 +85,11 @@ def images_modul(api, nim: str, modul: str) -> list[dict[str, Any]]:
     return sorted(hasil, key=lambda x: x["nama"])
 
 
-def snapshot_yatim(api) -> list[str]:
+def snapshot_yatim(api, nim: str | None = None) -> list[str]:
     """Snapshot hasil CreateImage yang AMI-nya sudah tidak ada (tetap ditagih bila dibiarkan)."""
     snaps = api.panggil("ec2", "describe-snapshots", "--owner-ids", "self").get("Snapshots", [])
+    if nim is not None:
+        snaps = [s for s in snaps if _tags(s.get("Tags")).get("nim") == nim]
     amis = {im.get("ImageId") for im in api.panggil("ec2", "describe-images", "--owners", "self").get("Images", [])}
     yatim = []
     for s in snaps:
@@ -157,14 +168,14 @@ def _kunci_menunggu_hapus(api, arn: str) -> bool:
     return meta.get("KeyState") == "PendingDeletion"
 
 
-def sisa(api) -> dict[str, Any]:
-    r = api.panggil("resourcegroupstaggingapi", "get-resources", "--tag-filters",
-                    "Key=kursus,Values=komputasi-awan")
+def sisa(api, nim: str | None = None) -> dict[str, Any]:
+    saring = ["Key=kursus,Values=komputasi-awan"] + ([f"Key=nim,Values={nim}"] if nim else [])
+    r = api.panggil("resourcegroupstaggingapi", "get-resources", "--tag-filters", *saring)
     arn = sorted(x.get("ResourceARN") for x in r.get("ResourceTagMappingList", []))
     # Kunci KMS yang sudah di-destroy menunggu 7-30 hari sebelum benar-benar hilang (tidak ditagih).
     menunggu = [a for a in arn if ":kms:" in a and ":key/" in a and _kunci_menunggu_hapus(api, a)]
     return {"bertag": [a for a in arn if a not in menunggu], "kunci_menunggu": menunggu,
-            "liar": instance_liar(api), "snapshot_yatim": snapshot_yatim(api)}
+            "liar": instance_liar(api, nim), "snapshot_yatim": snapshot_yatim(api, nim)}
 
 
 # ----------------------------------------------------------------- jaringan (M03+)
@@ -202,9 +213,11 @@ def route_tables(api, vpc_id: str) -> list[dict[str, Any]]:
     return sorted(hasil, key=lambda x: x["id"] or "")
 
 
-def nat_hidup(api) -> list[str]:
+def nat_hidup(api, vpc_ids: list[str] | None = None) -> list[str]:
+    """NAT Gateway hidup; di akun bersama hanya yang berada di VPC milik NIM ini (`vpc_ids`)."""
     r = api.panggil("ec2", "describe-nat-gateways", "--filter", "Name=state,Values=pending,available")
-    return sorted(n.get("NatGatewayId") for n in r.get("NatGateways", []))
+    return sorted(n.get("NatGatewayId") for n in r.get("NatGateways", [])
+                  if vpc_ids is None or n.get("VpcId") in vpc_ids)
 
 
 def sg_vpc(api, vpc_id: str) -> list[dict[str, Any]]:

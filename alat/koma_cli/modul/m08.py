@@ -50,7 +50,7 @@ def kumpul(api, ident: Mapping[str, str]) -> dict[str, Any]:
         "jejak": k.jejak_pipeline(api, ident["nim"], modul="m08", sumber_acara=("ecr.amazonaws.com",)),
         "bertag": [x for x in k.sumber_bertag(api, ident["nim"], MODUL)
                    if ":repository/" not in (x["arn"] or "")],
-        "liar": k.instance_liar(api),
+        "liar": k.instance_liar(api, k.nim_bersama(ident)),
     }
 
 
