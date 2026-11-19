@@ -77,6 +77,6 @@ Apakah plan yang lolos Conftest pasti aman? Jawab dengan satu contoh dari D.3.2 
 ## 4. Bukti
 
 - Potret 1 (D.6) pada (WIB), `Latihan lulus`: 19-11, tidak terambil: `koma cek m05` → `verifier menolak (403): Forbidden` (sama seperti Modul 03 dan 04; potret dilewati atas arahan dosen)
-- Potret 2 (E.2, bersih) pada (WIB), `bersih_akhir`:
+- Potret 2 (E.2, bersih) pada (WIB), `bersih_akhir`: 19-11, tidak terambil (`403`); bukti manual: `tofu destroy` → `Destroy complete! Resources: 18 destroyed.`
 - `latihan_lulus` dan `sumber` pada `bukti/bukti-m05.json` yang diunggah:
 - Berkas `*.tfplan` dan `*.plan.json` sudah dihapus (E.3): ya / belum
