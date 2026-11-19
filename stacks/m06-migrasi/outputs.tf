@@ -16,4 +16,7 @@ output "log_group" {
   value = aws_cloudwatch_log_group.api.name
 }
 
-# TODO D.4: dasbor (tautan konsol CloudWatch).
+# D.4 Tautan dasbor di konsol CloudWatch
+output "dasbor" {
+  value = "https://${var.region}.console.aws.amazon.com/cloudwatch/home?region=${var.region}#dashboards/dashboard/${aws_cloudwatch_dashboard.api.dashboard_name}"
+}
