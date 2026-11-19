@@ -56,14 +56,14 @@ Isi berkas ini sambil mengerjakan prosedur. Angka, ID, dan waktu disalin dari ke
 
 | Hal | Isi |
 |---|---|
-| Plan expand (ringkasan) | |
-| `alb_url` | |
-| `koma sehat` ke ALB (detik) dan `/versi` setelah expand | |
-| Status target biru dan hijau | |
-| Plan alih (resource yang berubah) | |
-| Ringkasan `koma probe` saat alih biru → hijau (sampel, gagal, jeda terpanjang, versi, detik alih) | |
-| Waktu alih (WIB) dan perbandingan dengan L4 | |
-| Penanda konsol server hijau | |
+| Plan expand (ringkasan) | `Plan: 18 to add, 0 to change, 0 to destroy.`; tidak ada resource legacy di daftar `~`, `-/+`, atau `-`; output `aktif = "biru"`, `log_group = "/koma/123450039/m06/api"`. |
+| `alb_url` | `http://koma-123450039-m06-625072480.ap-southeast-2.elb.amazonaws.com` (server hijau `i-0f1604634fc677876`) |
+| `koma sehat` ke ALB (detik) dan `/versi` setelah expand | `SEHAT setelah 0.7 detik`; `/versi` = `{"versi": "0.9.0", "peran": "legacy", "host": "ip-172-31-35-136…"}`, jadi lalu lintas masih ke legacy. |
+| Status target biru dan hijau | biru `i-0dc7c89eebf627ea2` `healthy`; hijau `i-0f1604634fc677876` `unused` (alasan `Target.NotInUse`): target group hijau belum dirujuk listener sehingga ALB belum menjalankan health check padanya. Kesiapan hijau dipastikan lewat penanda konsol sebelum alih. |
+| Plan alih (resource yang berubah) | `Plan: 0 to add, 1 to change, 0 to destroy.` Hanya `aws_lb_listener.http` (in-place): `default_action.target_group_arn` dari `targetgroup/koma-123450039-m06-biru/…` ke `targetgroup/koma-123450039-m06-hijau/…`; output `aktif = "biru" -> "hijau"`. |
+| Ringkasan `koma probe` saat alih biru → hijau (sampel, gagal, jeda terpanjang, versi, detik alih) | Percobaan 1 (gagal): `Sampel 236, gagal 87, jeda terpanjang 45.0 dtk, versi {'0.9.0': 149}, alih pada detik None`; GAGAL mulai detik 75,1. Target hijau `unhealthy` (`Target.FailedHealthChecks`) dan ALB menjawab `502 Bad Gateway`: ALB menjangkau server, tetapi tidak ada yang menjawab di port 80. Log group kosong (tanpa stream), sehingga layanan `koma-api` tidak pernah menulis log. Rollback `aktif = "biru"` (1 change pada listener) memulihkan `/versi` ke `0.9.0` legacy. Perbaikan: unit memakai pengguna sistem `koma` dan folder `/var/log/koma` disiapkan sebelum layanan start, ditambah aturan listener `X-Koma-Uji: hijau` agar hijau diuji ALB sebelum alih. Percobaan 2 (setelah perbaikan dan uji hijau sehat): `Sampel 235, gagal 0, jeda terpanjang 0.0 dtk, versi {'0.9.0': 158, '6.0.0': 77}, alih pada detik 80.8`. Plan alih kedua sempat `2 to add, 1 to change, 2 to destroy` karena AMI `most_recent` bergeser; tidak di-apply, `ignore_changes = [ami]` ditambahkan pada server hijau sampai plan `0 to add, 1 to change, 0 to destroy`. |
+| Waktu alih (WIB) dan perbandingan dengan L4 | Percobaan 1: apply alih 10.57 WIB, gagal; jeda 45 detik jauh melampaui L4 (≤ 2 detik, kios galat setelah 3 detik) sehingga untuk KSL ini setara insiden, lalu di-rollback. Percobaan 2: alih berhasil dengan 0 gagal dan jeda terpanjang 0,0 detik, di bawah L4 (≤ 2 detik); di produksi KSL alih dijadwalkan di jendela Selasa 01.00–04.00 (L4) pada jam sepi 00.00–05.00 (L3). Rollback ke biru sudah terlatih (1 change pada listener, `/versi` kembali `0.9.0`). |
+| Penanda konsol server hijau | Server hijau pertama (`i-0f1604634fc677876`): `KOMA-PENANDA hijau 6.0.0 siap, log ke /koma/123450039/m06/api` tercetak walau layanan tidak menjawab, jadi penanda hanya membuktikan cloud-init selesai. Setelah perbaikan (`i-0fea7f04887c849be`): `KOMA-PENANDA layanan koma-api active`, `systemd[1]: Started koma-api.service - koma-api 6.0.0.`, `KOMA-PENANDA hijau 6.0.0 siap, log ke /koma/123450039/m06/api`. Uji lewat aturan listener `X-Koma-Uji: hijau` menjawab `{"versi": "6.0.0", "peran": "hijau"}` dan target `healthy` sebelum alih, sementara permintaan biasa tetap `0.9.0`. |
 
 ## Catatan Bagian D — Observability
 
@@ -105,7 +105,7 @@ Satu baris per `koma cek m06`. Potret aktif terakhir sebelum destroy di Tugas (s
 |---|---|---|---|---|
 | 1 | A.3 | legacy dibuat, belum diimpor | | verifier menolak (403); potret dilewati sesuai arahan dosen |
 | 2 | B.5 | legacy diimpor | | verifier menolak (403): Forbidden; potret dilewati sesuai arahan dosen |
-| 3 | C.7 | expand, listener ke biru | | |
+| 3 | C.7 | expand, listener ke biru | | verifier menolak (403): Forbidden; potret dilewati sesuai arahan dosen |
 | 4 | C.8 | alih, listener ke hijau | | |
 | 5 | D.6 | alarm pernah menyala | | |
 | 6 | E.2 | drift disuntikkan | | |

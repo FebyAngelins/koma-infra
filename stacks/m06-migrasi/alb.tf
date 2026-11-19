@@ -106,3 +106,25 @@ resource "aws_lb_listener" "http" {
     }
   }
 }
+
+# Uji hijau sebelum alih (K-06): permintaan ber-header X-Koma-Uji: hijau diteruskan ke hijau.
+# Target group hijau jadi "dipakai" sehingga ALB menjalankan health check sebelum listener dipindah.
+resource "aws_lb_listener_rule" "uji_hijau" {
+  listener_arn = aws_lb_listener.http.arn
+  priority     = 10
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.hijau.arn
+  }
+
+  condition {
+    http_header {
+      http_header_name = "X-Koma-Uji"
+      values           = ["hijau"]
+    }
+  }
+
+  tags = { Name = "${local.awalan}-uji-hijau", peran = "hijau" }
+}
+

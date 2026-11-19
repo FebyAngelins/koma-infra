@@ -119,4 +119,10 @@ resource "aws_instance" "hijau" {
   }
 
   tags = { Name = "${local.awalan}-hijau", peran = "hijau", versi = var.versi_hijau }
+
+  lifecycle {
+    # Data AMI "most_recent" berganti-ganti antar plan (pola yang sama di K-05); server hanya
+    # diganti bila user_data (versi, template, aplikasi) berubah, bukan karena AMI bergeser.
+    ignore_changes = [ami]
+  }
 }

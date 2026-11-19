@@ -21,9 +21,9 @@ write_files:
       [Service]
       EnvironmentFile=/etc/koma/koma.env
       ExecStart=/usr/bin/python3 /opt/koma/koma_api.py --port 80
-      DynamicUser=yes
+      User=koma
+      Group=koma
       AmbientCapabilities=CAP_NET_BIND_SERVICE
-      LogsDirectory=koma
       StandardError=append:/var/log/koma/api.log
       Restart=always
 
@@ -36,8 +36,15 @@ write_files:
         {"file_path": "/var/log/koma/api.log", "log_group_name": "${log_group}",
          "log_stream_name": "{instance_id}"}]}}}}
 runcmd:
+  # Pengguna sistem tanpa login dan folder log disiapkan SEBELUM layanan start, supaya
+  # StandardError=append:/var/log/koma/api.log tidak gagal karena folder belum ada (perbaikan K-06).
+  - useradd --system --no-create-home --shell /sbin/nologin koma
+  - install -d -o koma -g koma -m 0755 /var/log/koma
   - systemctl daemon-reload
   - systemctl enable --now koma-api.service
   - dnf install -y amazon-cloudwatch-agent
   - /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/etc/koma.json
+  - sleep 3
+  - echo "KOMA-PENANDA layanan koma-api $(systemctl is-active koma-api.service)" > /dev/console
+  - journalctl -u koma-api.service --no-pager -n 15 > /dev/console
   - echo "KOMA-PENANDA hijau ${versi} siap, log ke ${log_group}" > /dev/console
