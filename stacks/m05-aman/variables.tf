@@ -48,4 +48,13 @@ variable "putaran_rahasia" {
   }
 }
 
-# TODO D.1  variable "kunci_state": string, sensitive, tanpa nilai bawaan, validasi panjang >= 16.
+# Tanpa nilai bawaan: hanya datang dari environment TF_VAR_kunci_state.
+variable "kunci_state" {
+  type        = string
+  sensitive   = true
+  description = "Passphrase enkripsi state OpenTofu (minimal 16 karakter)"
+  validation {
+    condition     = length(var.kunci_state) >= 16
+    error_message = "Passphrase enkripsi state minimal 16 karakter."
+  }
+}
