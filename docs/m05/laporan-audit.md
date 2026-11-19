@@ -7,7 +7,7 @@
 | Kelompok | `k01` |
 | Kasus | k01 Klinik Sehat Lampung |
 | Peninjau PR `m05` (NIM) | - (tugas individu) |
-| Tautan *pull request* | |
+| Tautan *pull request* | https://github.com/FebyAngelins/koma-infra/pull/5 (tanpa peninjau: tugas individu atas arahan dosen) |
 
 Isi berkas ini sambil mengerjakan prosedur. Jangan menulis password, passphrase state, token verifier, isi state atau plan JSON, atau 12 digit ID akun AWS; tulis nama bucket sebagai `koma-<nim>-m05-laporan-<akun>`. Berkas ini ikut di-commit dan masuk `koma-module-05.zip`.
 
@@ -92,7 +92,7 @@ Satu baris per `koma cek m05`. Potret aktif terakhir sebelum destroy harus lulus
 | 2 | E.2 | kosong | 19-11 | tidak terambil (`403`); bukti manual: `Destroy complete! Resources: 18 destroyed.`, `describe-instances` m05 running → `[]`, state tetap `encrypted_data`, kunci KMS `PendingDeletion` |
 | 3 | Tugas Langkah 2 | dibangun ulang | 19-11 | tidak terambil (`403`); apply `18 added`, Conftest 0 failures, server `i-08a4d537823561768`, parameter versi 1 |
 | 4 | Tugas Langkah 3 | setelah rotasi dan reboot | 19-11 | tidak terambil (`403`); parameter versi 2 (diubah 09:06:13 WIB), server yang sama di-reboot, `koma sehat` SEHAT 0,4 detik |
-| 5 | Tugas Langkah 5 | kosong | | |
+| 5 | Tugas Langkah 5 | kosong | 19-11 | tidak terambil (`403`); bukti manual: `Destroy complete! Resources: 18 destroyed.`; kunci KMS kedua (`60f338fa-…`) dijadwalkan dihapus |
 
 Bukti tidak langsung yang hanya dapat diambil selama stack hidup:
 
