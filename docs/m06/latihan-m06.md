@@ -86,5 +86,5 @@ Perbandingan dengan O5 dan anggaran galat O1 kasus saya (anggaran per 30 hari, p
 ## 4. Bukti
 
 - Potret 5 (D.6) pada (WIB), `Latihan lulus`: verifier menolak (403) di sepanjang modul, sehingga potret dilewati sesuai arahan dosen.
-- Potret bersih (G.2) pada (WIB), `bersih_akhir`:
-- `latihan_lulus` dan `sumber` pada `bukti/bukti-m06.json` yang diunggah:
+- Potret bersih (G.2) pada 20 November 2026 setelah `tofu destroy` (`Resources: 18 destroyed.`), `bersih_akhir`: verifier menolak (403); `koma sisa` tanpa server, ALB, atau security group m06, dan `describe-load-balancers` menjawab `LoadBalancerNotFound`.
+- `latihan_lulus` dan `sumber` pada `bukti/bukti-m06.json` yang diunggah: tidak tersedia, karena verifier menolak (403) sehingga bukti bertanda tangan tidak terbentuk.

@@ -1,52 +1,19 @@
-# Jawaban Analisis — Modul 06 (draf)
+# Jawaban Analisis Modul 06
 
-| Hal | Isi |
-|---|---|
-| Nama | |
-| NIM | |
-| Kelompok | `k0_` |
-| Kasus | |
+Feby Angelina, 123450039, k01, Klinik Sehat Lampung
 
-Draf ini ditulis sendiri, lalu disalin ke jendela **Soal analisis** pada **Tugas Individu — Modul 06** di Workbench. Bukti berasal dari pekerjaan Anda (`docs/m06/catatan-bukti.md`, `latihan-m06.md`, bukti verifier) dan berkas kasus kelompok. Sebut kode bukti kasus (L1–L5, E4, E5, E8, O1–O6) saat memakai faktanya, dan rujuk baris `K-06-*` bila relevan. Angka Sumatera Data di naskah adalah contoh, bukan angka kasus Anda.
+## 1. Strategi dan bukti keberhasilan
 
-## Pertanyaan 1 — Strategi dan bukti keberhasilan
+Dalam Matriks Strategi saya, Sistem Antrean Pendaftaran v0.9 (L1) di-rehost lebih dulu dengan cara diimpor ke kode tanpa mengubah servernya, lalu di-replatform ke server hijau di balik ALB, dan server lamanya di-retire setelah contract. Sebaliknya, database RME di-retain di pusat data on-premises. Perbedaannya datang dari sifat masing-masing komponen. L1 adalah aplikasi tanpa data penting di servernya dan alamatnya tertanam di firmware 140 kios yang butuh sekitar 3 bulan untuk diperbarui (L2), sehingga yang harus dijaga adalah alamatnya, bukan servernya. Karena itu rehost lalu replatform cukup murah dan cepat, dan menghasilkan aplikasi yang cloud ready (Surianarayanan & Chelliah, 2023, hlm. 237–238 dan 240–242). Database RME berisi rekam medis dan identitas pasien yang menurut E8 dan P4 tidak boleh keluar dari pusat data, jadi strategi yang tepat adalah retain dan ditinjau lagi nanti (hlm. 240). Keputusan seperti ini seharusnya diambil di fase penilaian dan perencanaan, sebelum satu resource pun dibuat, karena di fase itulah setiap aplikasi dinilai kesiapannya dan dipilih salah satu dari tujuh strategi (hlm. 233–236). Di praktikum saya keputusan itu juga yang menentukan isi kode, misalnya `count = var.pertahankan_legacy` pada semua resource legacy supaya retire bisa dilakukan lewat satu variabel. Sebelum fase migrasi dan validasi dinyatakan selesai, sinyal di lapisan aplikasi dan lapisan layanan cloud harus sudah terpantau (hlm. 252–254). Di stack saya itu berarti log permintaan di CloudWatch Logs (stream `i-0fea7f04887c849be`), jumlah permintaan dan p95 waktu respons di dasbor, jumlah target sehat, dan alarm p95 yang sudah terbukti menyala pada sekitar 0,51 detik. Semua ini diukur terhadap SLA 99,95% dan SLO p95 di bawah 500 ms (O1, E5). Alih pertama saya membuktikan pentingnya ini: penanda cloud-init tercetak "siap", tetapi target hijau tidak pernah diuji ALB dan layanannya ternyata tidak berjalan, sehingga probe mencatat 87 kegagalan. Sebagai pengguna cloud saya tidak dapat memantau lapisan di bawah hypervisor, seperti kesehatan host fisik, jaringan internal antar-AZ, dan node ALB itu sendiri. Saya hanya melihat dampaknya lewat metrik yang disediakan AWS.
 
-Matriks Strategi saya (ringkas):
+## 2. Impor, kode, dan drift
 
-| Komponen | Strategi | Alasan (kode bukti) |
-|---|---|---|
-| Aplikasi legacy (L1) | | |
-| Database (E8) | | |
-| | | |
+Plan impor saya, `3 to import, 0 to add, 3 to change, 0 to destroy`, membuktikan bahwa atribut yang tidak bisa diubah di tempat, yaitu nama dan deskripsi security group, VPC, sumber dan port aturan, serta tipe server, sudah ditulis sama persis dengan kenyataan. Yang berubah hanya tag `stack` dan `managed-by`, ditambah empat tag pemilik pada aturan masuk yang sebelumnya tanpa tag, sehingga server `i-0dc7c89eebf627ea2` diambil alih tanpa diganti. Namun plan itu tidak membuktikan bahwa kode menggambarkan seluruh server. AMI, `user_data`, dan `user_data_base64` ada di `ignore_changes`, jadi isi skrip boot dan image yang sebenarnya tidak diawasi. Isi di dalam server, seperti berkas, paket, dan proses, sama sekali tidak terlihat oleh provider. Aturan keluar bawaan `sgr-0d254039912d55f8a` ke `0.0.0.0/0` juga tidak ditulis dan tidak diimpor, sehingga tetap ada tanpa tercatat. Inilah yang disebut Morris sebagai snowflakes as code: server buatan tangan yang dibungkus kode, sementara keunikannya tetap tersembunyi di dalam (Morris, 2025, hlm. 124). Setelah impor, plan yang sama menjadi detektor drift. Di Bagian E, tag `diubah-manual` yang saya tambahkan lewat CLI menghasilkan `exit code = 2` dengan usulan menghapus tag itu, sedangkan `-refresh-only` melaporkannya sebagai perubahan di luar OpenTofu. Setelah `tofu apply`, server yang sama kembali dengan `exit code = 0`. Drift yang tertangkap hanyalah perubahan pada atribut yang dikelola kode (Morris, 2025, hlm. 201 dan 350–351; Hafner, 2025, hlm. 193–195). Kalau operator O5 di KSL mengubah tipe server, aturan security group, atau tag lewat konsol, perubahan itu akan tertangkap pada plan berikutnya. Kalau ia mengubah konfigurasi aplikasi atau memori proses dari dalam server, mengganti skrip boot yang ada di `ignore_changes`, atau menambah aturan keluar di luar kode, plan tetap bersih. Saya juga melihat bahwa `-refresh-only` memuat hal yang bukan drift, seperti atribut `ingress` security group yang berubah karena aturannya dikelola resource terpisah, sehingga laporan drift tetap harus dibaca dan diputuskan oleh orang.
 
-Mengapa strategi L1 berbeda dengan database, dan pada fase migrasi mana keputusan ini diambil ([S] hlm. 233–240):
+## 3. Jeda, alarm, dan anggaran galat
 
-Sinyal yang harus sudah terpantau sebelum "migrasi dan validasi" dinyatakan selesai, per lapisan ([S] hlm. 252–254; O1), dan yang tidak dapat saya pantau sebagai pengguna cloud:
+Alih kedua saya pukul 11.27–11.28 WIB mencatat `Sampel 235, gagal 0, jeda terpanjang 0.0 dtk`, dengan versi berganti ke 6.0.0 pada detik 80,8. Karena selang probe 0,5 detik, artinya tidak ada jeda yang lebih panjang dari setengah detik. Ini memenuhi L4, yaitu jeda paling lama 2 detik karena kios menampilkan galat setelah 3 detik. Alih pertama tanpa uji justru menghasilkan jeda 45 detik dan 87 kegagalan, yang bagi KSL sudah setara insiden. Karena itu peralihan produksi tetap saya jadwalkan di jendela Selasa 01.00–04.00 (L4), di dalam jam sepi 00.00–05.00 (L3), dengan rollback yang sudah terlatih. Saat beban `/lambat?ms=500` dengan 4 pekerja, p95 di CloudWatch naik ke sekitar 0,51 detik, dan alarm berubah ke ALARM sekitar 4 menit setelah beban dimulai (19.30.30 ke 19.34.41, dan 19.49 ke 19.52.41). Dengan SLA 99,95% (E4, O1), anggaran galat KSL hanya 21,6 menit per 30 hari, sehingga deteksi 4 menit memakai sekitar 19% anggaran. Insiden O5 yang baru diketahui setelah 25 menit memakai sekitar 116%, artinya anggaran bulan itu sudah habis sebelum ada yang tahu. Ambang 0,3 detik dengan satu periode 60 detik menurut saya cukup tepat untuk E5 (p95 < 500 ms), karena ambangnya 0,2 detik lebih ketat dari SLO, sehingga alarm menyala sebelum pasien benar-benar merasakan pelanggaran. Kelemahannya, satu periode mudah memicu alarm palsu ketika ada lonjakan singkat. Saya mengusulkan tetap satu periode untuk p95, ditambah alarm tingkat galat 5xx dan alarm `HealthyHostCount` di bawah 1 seperti yang diminta O4, karena alih pertama saya menunjukkan bahwa kegagalan total (502) tidak tertangkap alarm latensi. Semua alarm dikirim lewat SNS ke pemegang on-call O6. Tawar-menawarnya sesuai Domingus dan Arundel (2022, hlm. 303–305): alarm yang terlalu sensitif membuat tim lelah dan mengabaikan alarm, sedangkan menambah periode menjadi tiga mengurangi alarm palsu tetapi menambah sekitar 2 menit deteksi, setara sekitar 9% anggaran KSL.
 
-## Pertanyaan 2 — Impor, kode, dan drift
+## 4. Kapan contract
 
-Bukti saya (ringkasan plan impor, isi `ignore_changes`, exit code Bagian E):
-
-Apa yang dibuktikan plan impor, dan apa yang tidak (Morris, 2025, hlm. 124):
-
-Perubahan manual pada O5 kasus saya: tertangkap `-detailed-exitcode` atau tidak, dan mengapa (Morris, 2025, hlm. 201, 350–351; Hafner, 2025, hlm. 193–195):
-
-## Pertanyaan 3 — Jeda, alarm, dan anggaran galat
-
-| Ukuran | Hasil saya | Pembanding kasus (kode) |
-|---|---|---|
-| Jeda saat alih (probe) | | L4: |
-| Jadwal peralihan produksi | — | L3: |
-| Waktu deteksi alarm (menit) | | O5: |
-| Anggaran galat per 30 hari | — | E4/O1: |
-| Ambang alarm lab vs SLO latensi | 0,3 dtk, 1 × 60 dtk | E5: |
-
-Analisis dan usulan perubahan (ambang, periode, alarm tambahan dari O4, penerima dari O6) beserta tawar-menawarnya (Domingus & Arundel, 2022, hlm. 303–305):
-
-## Pertanyaan 4 — Kapan contract
-
-Syarat sebelum contract dan apa yang hilang sesudahnya (Morris, 2025, hlm. 379–381):
-
-Satu kriteria terukur dari observability yang saya bangun, untuk kasus saya (L2, L3, L5):
-
-Utang keamanan legacy yang saya temukan dan pengaruhnya pada waktu contract:
+Saya membongkar legacy pukul 20.38 WIB setelah alih berhasil, rollback ke biru terbukti bekerja, alarm terbukti menyala, dan drift sudah direkonsiliasi dengan `exit code = 0`. Contract menghapus 6 resource, sementara probe mencatat 239 sampel tanpa gagal dengan versi 6.0.0 saja. Dalam produksi, contract baru boleh dilakukan setelah semua pengguna terbukti sudah pindah ke jalur baru dan versi baru stabil cukup lama, karena setelah contract jalan pulang hilang (Morris, 2025, hlm. 379–381). Yang hilang setelah contract adalah rollback cepat dengan satu atribut listener, server yang masih menyimpan konfigurasi lama sebagai pembanding, dan kemungkinan memeriksa ulang data yang ditulis versi lama. Di praktikum saya, rollback setelah contract berarti membangun ulang legacy dari nol. Kriteria terukur yang saya usulkan untuk KSL adalah sebagai berikut. Selama satu minggu penuh yang memuat jam sibuk pendaftaran, alarm `koma-…-latensi-p95` tidak pernah ALARM lebih dari 5 menit berturut-turut, `HealthyHostCount` target group hijau tidak pernah turun di bawah 1, dan log group tidak memuat jawaban 5xx lebih dari 0,05% permintaan (sesuai target galat O1). Selain itu, log target group biru tidak memuat satu pun permintaan dari kios selama 7 hari, yang membuktikan 140 kios (L2) tidak lagi memakai jalur lama. Untuk L5, jumlah pendaftaran per menit di versi baru juga harus cocok dengan sekitar 35 pendaftaran per menit di sistem lama, supaya tidak ada data antrean yang hilang saat peralihan. Kriteria ini harus ditimbang dengan utang keamanan legacy. Server lama berdisk root tidak terenkripsi, dibuat tangan, dan menyimpan aturan keluar ke seluruh internet yang tidak tercatat di kode, walaupun IMDS-nya ternyata sudah `required`. Setiap hari legacy dibiarkan hidup, risiko itu tetap terbuka. Karena itu masa tunggu sebaiknya dibatasi satu minggu, bukan berbulan-bulan, dan dijadwalkan di jam sepi L3 agar kalau ada masalah masih ada waktu untuk bertindak.

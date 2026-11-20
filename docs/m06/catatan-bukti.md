@@ -7,7 +7,7 @@
 | Kelompok | `k01` |
 | Kasus | Klinik Sehat Lampung (KSL) |
 | Peninjau PR `m06` (NIM) | - (tugas individu, tanpa peninjau sesuai arahan dosen) |
-| Tautan *pull request* | |
+| Tautan *pull request* | (diisi setelah PR dibuka) |
 
 Isi berkas ini sambil mengerjakan prosedur. Angka, ID, dan waktu disalin dari keluaran perintah Anda sendiri; contoh di naskah hanya gambaran. Jangan menulis token verifier, isi state, atau 12 digit ID akun AWS (tulis `<akun>`); ID resource (`i-…`, `sg-…`) dan nama DNS ALB boleh ditulis. Berkas ini ikut di-commit dan masuk `koma-module-06.zip`.
 
@@ -93,13 +93,13 @@ Isi berkas ini sambil mengerjakan prosedur. Angka, ID, dan waktu disalin dari ke
 |---|---|
 | Pesan precondition dengan `-var aktif=biru` | `Error: Resource precondition failed` pada `alb.tf` baris 104, `aws_lb_listener.http`: `condition = var.aktif == "hijau" \|\| var.pertahankan_legacy` dengan `var.aktif is "biru"`, `var.pertahankan_legacy is false`; pesan `Lalu lintas tidak dapat diarahkan ke biru setelah legacy dibongkar (pertahankan_legacy = false). Pakai aktif = "hijau".` Plan berhenti, tidak ada yang diubah. |
 | Plan contract (ringkasan dan resource yang dibongkar) | `Plan: 0 to add, 0 to change, 6 to destroy.` Dibongkar: `aws_instance.legacy[0]` (`i-0dc7c89eebf627ea2`), `aws_security_group.legacy[0]`, `aws_vpc_security_group_ingress_rule.legacy_http[0]`, `aws_vpc_security_group_ingress_rule.legacy_dari_alb[0]`, `aws_lb_target_group.biru[0]`, `aws_lb_target_group_attachment.biru[0]`. Apply 20.38 WIB: `0 added, 0 changed, 6 destroyed`; output `aktif = "hijau"`, `id_hijau = "i-0fea7f04887c849be"` tidak berubah. `koma legacy info`: `Legacy belum ada.` |
-| Ringkasan `koma probe` selama contract | |
+| Ringkasan `koma probe` selama contract | `sampel 239, gagal 0, jeda_terpanjang_detik 0.0, selang_detik 0.5, versi {"6.0.0": 239}, alih_pada_detik null` (`.koma/probe-m06.json`, 2026-11-20T13:40:00Z): legacy sudah tidak menerima lalu lintas sejak C.8, sehingga pembongkaran tidak terasa oleh klien. |
 | Rollback yang dilatih sebelum contract (opsional: jeda kedua arah) | Ya, tidak direncanakan: setelah alih pertama gagal (10.57 WIB, 502, jeda 45 detik), `aktif = "biru"` + `tofu apply` (`0 added, 1 changed, 0 destroyed`) mengembalikan `/versi` ke `0.9.0` legacy. Alih ulang biru → hijau: 0 gagal, jeda terpanjang 0,0 detik. |
 | Kriteria contract yang dipakai (kode bukti) | (1) Hijau melayani semua lalu lintas sejak alih 11.27–11.28 WIB 19 November dan tetap `6.0.0` di hari berikutnya; (2) alih tanpa gagal dan di bawah ambang L4 (≤ 2 detik); (3) rollback ke biru sudah terbukti bekerja; (4) alarm p95 terbukti menyala dan kembali OK, sehingga perlambatan versi baru akan terlihat dalam sekitar 4 menit (O1, E5); (5) drift terdeteksi dan direkonsiliasi lewat kode, plan `exit code = 0` sebelum contract. Untuk produksi KSL ditambah: hijau stabil satu siklus jam sibuk (O2, O3: puncak 420 rps) tanpa melanggar SLO, dan 140 kios (L2) tidak lagi menghubungi alamat legacy. |
 
 ## Langkah dan bukti
 
-Satu baris per `koma cek m06`. Potret aktif terakhir sebelum destroy di Tugas (setelah contract) harus lulus semua cek kecuali `bersih_akhir`, dan potret terakhir sebelum mengumpulkan harus potret bersih.
+Satu baris per `koma cek m06`. Seluruh rangkaian (impor, expand, alih, observability, drift, contract, destroy) dikerjakan berurutan pada 19–20 November tanpa bangun ulang; verifier menolak (403) di setiap potret sehingga potret dilewati sesuai arahan dosen. Potret aktif terakhir sebelum destroy di Tugas (setelah contract) harus lulus semua cek kecuali `bersih_akhir`, dan potret terakhir sebelum mengumpulkan harus potret bersih.
 
 | Potret | Langkah | Keadaan | Waktu (WIB) | Hasil penting (`Latihan lulus` / `Tugas lulus`, cek yang gagal) |
 |---|---|---|---|---|
@@ -110,8 +110,8 @@ Satu baris per `koma cek m06`. Potret aktif terakhir sebelum destroy di Tugas (s
 | 5 | D.6 | alarm pernah menyala | | verifier menolak (403): Forbidden; potret dilewati sesuai arahan dosen |
 | 6 | E.2 | drift disuntikkan | 20 Nov | verifier menolak (403): Forbidden; potret dilewati sesuai arahan dosen |
 | 7 | E.4 | drift direkonsiliasi | 20 Nov | verifier menolak (403): Forbidden; potret dilewati sesuai arahan dosen |
-| 8 | G.2 | kosong (sesi kelas) | | |
+| 8 | G.2 | kosong | 20 Nov, setelah destroy | verifier menolak (403); `tofu destroy`: `Resources: 18 destroyed.`; `koma sisa` tanpa server, ALB, atau SG m06 (`Snapshot sisa AMI: 0`); `describe-load-balancers` menjawab `LoadBalancerNotFound` |
 | | Tugas | | | |
 | | Tugas | | | |
-| | Tugas | contract | | |
+| | Tugas | contract | 20 Nov 20.38 | verifier menolak (403); contract `6 destroyed`, probe 239 sampel, 0 gagal, hanya `6.0.0` |
 | | Tugas | kosong | | |
