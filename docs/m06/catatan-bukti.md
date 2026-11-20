@@ -85,13 +85,13 @@ Isi berkas ini sambil mengerjakan prosedur. Angka, ID, dan waktu disalin dari ke
 | `tofu plan -detailed-exitcode` setelah drift: exit code dan ringkasan | `aws_instance.hijau will be updated in-place`: `tags` dan `tags_all` `- "diubah-manual" = "ya" -> null`; `Plan: 0 to add, 1 to change, 0 to destroy.`; `exit code = 2`. |
 | `tofu plan -refresh-only`: apa yang ditampilkan | `Note: Objects have changed outside of OpenTofu`, `aws_instance.hijau has changed`: `+ "diubah-manual" = "ya"`; diakhiri `This is a refresh-only plan, so OpenTofu will not take any actions to undo these.` Laporan itu juga memuat tiga perubahan yang bukan drift: `aws_security_group.alb` dan `aws_security_group.legacy[0]` (atribut `ingress` versi lama di state berubah dari `103.211.143.242/32` ke `118.99.119.185/32`, karena aturan diubah lewat resource aturan terpisah) dan `aws_cloudwatch_metric_alarm.latensi` (daftar aksi kosong `[]` terbaca untuk pertama kali). Ketiganya tidak membuat plan biasa mengusulkan perubahan; hanya tag `diubah-manual` yang merupakan drift sungguhan. `tofu apply -refresh-only` tidak dijalankan. |
 | Keputusan (kode diubah atau kenyataan dikembalikan) dan alasannya | Kenyataan dikembalikan ke kode lewat `tofu apply`. Tag `diubah-manual` tidak punya alasan, pemilik, atau catatan; mempertahankannya lewat `apply -refresh-only` hanya menyalinnya ke state sementara kode tetap tidak memuatnya, sehingga apply berikutnya akan membatalkannya diam-diam. Ini pola insiden O5 KSL (perubahan manual di konsol tanpa catatan): perubahan yang memang perlu harus masuk lewat kode dan review. |
-| Plan dan exit code setelah rekonsiliasi; ID server hijau sebelum dan sesudah | |
+| Plan dan exit code setelah rekonsiliasi; ID server hijau sebelum dan sesudah | `tofu apply`: `0 added, 1 changed, 0 destroyed` (tag `diubah-manual` dihapus). Plan berikutnya `No changes. Your infrastructure matches the configuration.`, `exit code = 0`. ID server hijau sebelum dan sesudah sama: `i-0fea7f04887c849be` (server dibetulkan, tidak diganti). |
 
 ## Catatan Bagian F — Contract
 
 | Hal | Isi |
 |---|---|
-| Pesan precondition dengan `-var aktif=biru` | |
+| Pesan precondition dengan `-var aktif=biru` | `Error: Resource precondition failed` pada `alb.tf` baris 104, `aws_lb_listener.http`: `condition = var.aktif == "hijau" \|\| var.pertahankan_legacy` dengan `var.aktif is "biru"`, `var.pertahankan_legacy is false`; pesan `Lalu lintas tidak dapat diarahkan ke biru setelah legacy dibongkar (pertahankan_legacy = false). Pakai aktif = "hijau".` Plan berhenti, tidak ada yang diubah. |
 | Plan contract (ringkasan dan resource yang dibongkar) | |
 | Ringkasan `koma probe` selama contract | |
 | Rollback yang dilatih sebelum contract (opsional: jeda kedua arah) | |
@@ -106,10 +106,10 @@ Satu baris per `koma cek m06`. Potret aktif terakhir sebelum destroy di Tugas (s
 | 1 | A.3 | legacy dibuat, belum diimpor | | verifier menolak (403); potret dilewati sesuai arahan dosen |
 | 2 | B.5 | legacy diimpor | | verifier menolak (403): Forbidden; potret dilewati sesuai arahan dosen |
 | 3 | C.7 | expand, listener ke biru | | verifier menolak (403): Forbidden; potret dilewati sesuai arahan dosen |
-| 4 | C.8 | alih, listener ke hijau | | |
-| 5 | D.6 | alarm pernah menyala | | |
-| 6 | E.2 | drift disuntikkan | | |
-| 7 | E.4 | drift direkonsiliasi | | |
+| 4 | C.8 | alih, listener ke hijau | | verifier menolak (403): Forbidden; potret dilewati sesuai arahan dosen |
+| 5 | D.6 | alarm pernah menyala | | verifier menolak (403): Forbidden; potret dilewati sesuai arahan dosen |
+| 6 | E.2 | drift disuntikkan | 20 Nov | verifier menolak (403): Forbidden; potret dilewati sesuai arahan dosen |
+| 7 | E.4 | drift direkonsiliasi | 20 Nov | verifier menolak (403): Forbidden; potret dilewati sesuai arahan dosen |
 | 8 | G.2 | kosong (sesi kelas) | | |
 | | Tugas | | | |
 | | Tugas | | | |
