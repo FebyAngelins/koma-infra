@@ -7,7 +7,7 @@
 | Kelompok | `k01` |
 | Kasus | Klinik Sehat Lampung (KSL) |
 | Peninjau PR `m06` (NIM) | - (tugas individu, tanpa peninjau sesuai arahan dosen) |
-| Tautan *pull request* | (diisi setelah PR dibuka) |
+| Tautan *pull request* | https://github.com/FebyAngelins/koma-infra/pull/6 |
 
 Isi berkas ini sambil mengerjakan prosedur. Angka, ID, dan waktu disalin dari keluaran perintah Anda sendiri; contoh di naskah hanya gambaran. Jangan menulis token verifier, isi state, atau 12 digit ID akun AWS (tulis `<akun>`); ID resource (`i-…`, `sg-…`) dan nama DNS ALB boleh ditulis. Berkas ini ikut di-commit dan masuk `koma-module-06.zip`.
 
