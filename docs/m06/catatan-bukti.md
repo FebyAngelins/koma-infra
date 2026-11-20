@@ -92,10 +92,10 @@ Isi berkas ini sambil mengerjakan prosedur. Angka, ID, dan waktu disalin dari ke
 | Hal | Isi |
 |---|---|
 | Pesan precondition dengan `-var aktif=biru` | `Error: Resource precondition failed` pada `alb.tf` baris 104, `aws_lb_listener.http`: `condition = var.aktif == "hijau" \|\| var.pertahankan_legacy` dengan `var.aktif is "biru"`, `var.pertahankan_legacy is false`; pesan `Lalu lintas tidak dapat diarahkan ke biru setelah legacy dibongkar (pertahankan_legacy = false). Pakai aktif = "hijau".` Plan berhenti, tidak ada yang diubah. |
-| Plan contract (ringkasan dan resource yang dibongkar) | |
+| Plan contract (ringkasan dan resource yang dibongkar) | `Plan: 0 to add, 0 to change, 6 to destroy.` Dibongkar: `aws_instance.legacy[0]` (`i-0dc7c89eebf627ea2`), `aws_security_group.legacy[0]`, `aws_vpc_security_group_ingress_rule.legacy_http[0]`, `aws_vpc_security_group_ingress_rule.legacy_dari_alb[0]`, `aws_lb_target_group.biru[0]`, `aws_lb_target_group_attachment.biru[0]`. Apply 20.38 WIB: `0 added, 0 changed, 6 destroyed`; output `aktif = "hijau"`, `id_hijau = "i-0fea7f04887c849be"` tidak berubah. `koma legacy info`: `Legacy belum ada.` |
 | Ringkasan `koma probe` selama contract | |
-| Rollback yang dilatih sebelum contract (opsional: jeda kedua arah) | |
-| Kriteria contract yang dipakai (kode bukti) | |
+| Rollback yang dilatih sebelum contract (opsional: jeda kedua arah) | Ya, tidak direncanakan: setelah alih pertama gagal (10.57 WIB, 502, jeda 45 detik), `aktif = "biru"` + `tofu apply` (`0 added, 1 changed, 0 destroyed`) mengembalikan `/versi` ke `0.9.0` legacy. Alih ulang biru → hijau: 0 gagal, jeda terpanjang 0,0 detik. |
+| Kriteria contract yang dipakai (kode bukti) | (1) Hijau melayani semua lalu lintas sejak alih 11.27–11.28 WIB 19 November dan tetap `6.0.0` di hari berikutnya; (2) alih tanpa gagal dan di bawah ambang L4 (≤ 2 detik); (3) rollback ke biru sudah terbukti bekerja; (4) alarm p95 terbukti menyala dan kembali OK, sehingga perlambatan versi baru akan terlihat dalam sekitar 4 menit (O1, E5); (5) drift terdeteksi dan direkonsiliasi lewat kode, plan `exit code = 0` sebelum contract. Untuk produksi KSL ditambah: hijau stabil satu siklus jam sibuk (O2, O3: puncak 420 rps) tanpa melanggar SLO, dan 140 kios (L2) tidak lagi menghubungi alamat legacy. |
 
 ## Langkah dan bukti
 
