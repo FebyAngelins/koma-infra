@@ -69,12 +69,12 @@ Isi berkas ini sambil mengerjakan prosedur. Angka, ID, dan waktu disalin dari ke
 
 | Hal | Isi |
 |---|---|
-| Stream log dan contoh baris log dari CloudWatch Logs (tanpa data pribadi) | |
-| Plan observability (ringkasan) | |
-| Ringkasan `koma beban` (permintaan, gagal, p50, p95) | |
-| Beban dimulai dan berhenti (WIB) | |
-| Waktu alarm berubah ke `ALARM` dan kembali `OK` (dari riwayat alarm) | |
-| Waktu deteksi (menit) dibandingkan O5 dan anggaran O1 | |
+| Stream log dan contoh baris log dari CloudWatch Logs (tanpa data pribadi) | Stream `i-0fea7f04887c849be` (ID server hijau). Contoh: `2026-11-19T04:32:08.225000+00:00 i-0fea7f04887c849be 172.31.10.94 "GET /health HTTP/1.1" 200 -` dan `2026-11-19T04:32:13.612000+00:00 i-0fea7f04887c849be 172.31.36.152 "GET /health HTTP/1.1" 200 -`. Alamat sumber adalah IP privat dua node ALB (health check bergantian sekitar tiap 5 detik), bukan IP laptop. Server hijau pertama tidak pernah membuat stream karena layanannya gagal start. |
+| Plan observability (ringkasan) | `Plan: 2 to add, 2 to change, 0 to destroy.` Ditambah `aws_cloudwatch_metric_alarm.latensi` (`koma-123450039-m06-latensi-p95`, `AWS/ApplicationELB` `TargetResponseTime`, dimensi `LoadBalancer = app/koma-123450039-m06/69f882f265f15073`, p95, 60 dtk, 1 periode, ambang 0.3, `notBreaching`) dan `aws_cloudwatch_dashboard.api`. Dua perubahan in-place karena IP laptop berganti antarhari (`103.211.143.242/32` → `118.99.119.185/32`): `cidr_ipv4` pada `alb_http` dan `legacy_http[0]` (Tabel 6.14, IP berubah setelah impor); tanpa penggantian. |
+| Ringkasan `koma beban` (permintaan, gagal, p50, p95) | `Permintaan 943, gagal 0, p50 740 ms, p95 830 ms` (4 pekerja, `/lambat?ms=500`, 180 detik; diukur dari laptop, termasuk jaringan Indonesia–Sydney). p95 `TargetResponseTime` di CloudWatch sekitar 0,50–0,51 detik per menit selama beban. Beban dijalankan dua kali; `RequestCount` per menit 158, 313, 312, 151 pada 19.31–19.34 dan lagi mulai 19.49. |
+| Beban dimulai dan berhenti (WIB) | Beban 1: sekitar 19.30.30–19.33.30. Beban 2: sekitar 19.49–19.52 (20 November 2026). |
+| Waktu alarm berubah ke `ALARM` dan kembali `OK` (dari riwayat alarm) | `INSUFFICIENT_DATA → OK` 19.30.41; `OK → ALARM` 19.34.41; `ALARM → OK` 19.43.41; `OK → ALARM` 19.52.41; `ALARM → OK` 20.01.41 (WIB). |
+| Waktu deteksi (menit) dibandingkan O5 dan anggaran O1 | Sekitar 4 menit (4,2 dan 3,7 menit) dari beban dimulai sampai `ALARM`, sekitar 19% anggaran 21,6 menit; insiden O5 (25 menit) sekitar 116%. Pemulihan ke `OK` sekitar 9–10 menit setelah beban berhenti. Ambang 0,3 detik lebih ketat 0,2 detik dari SLO E5 (p95 < 500 ms). |
 
 ## Catatan Bagian E — Drift
 
