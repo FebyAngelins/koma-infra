@@ -28,6 +28,6 @@ Setiap modul, pemilik repo membuka *pull request* dan meminta satu anggota lain 
 | m03 | - | - |
 | m04 | - | - |
 | m05 | - | - |
-| m06 | | |
+| m06 | - | - |
 | m07 | | |
 | m08 | | |
