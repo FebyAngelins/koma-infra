@@ -80,11 +80,11 @@ Isi berkas ini sambil mengerjakan prosedur. Angka, ID, dan waktu disalin dari ke
 
 | Hal | Isi |
 |---|---|
-| Garis dasar `tofu plan -detailed-exitcode` (exit code) | |
-| Perintah yang menyuntikkan drift | |
-| `tofu plan -detailed-exitcode` setelah drift: exit code dan ringkasan | |
-| `tofu plan -refresh-only`: apa yang ditampilkan | |
-| Keputusan (kode diubah atau kenyataan dikembalikan) dan alasannya | |
+| Garis dasar `tofu plan -detailed-exitcode` (exit code) | `No changes. Your infrastructure matches the configuration.`, `exit code = 0` (setelah apply observability dan pembaruan `cidr_saya`). |
+| Perintah yang menyuntikkan drift | `aws ec2 create-tags --resources i-0fea7f04887c849be --tags Key=diubah-manual,Value=ya` pukul 20.25 WIB (20 November 2026), tanpa keluaran. |
+| `tofu plan -detailed-exitcode` setelah drift: exit code dan ringkasan | `aws_instance.hijau will be updated in-place`: `tags` dan `tags_all` `- "diubah-manual" = "ya" -> null`; `Plan: 0 to add, 1 to change, 0 to destroy.`; `exit code = 2`. |
+| `tofu plan -refresh-only`: apa yang ditampilkan | `Note: Objects have changed outside of OpenTofu`, `aws_instance.hijau has changed`: `+ "diubah-manual" = "ya"`; diakhiri `This is a refresh-only plan, so OpenTofu will not take any actions to undo these.` Laporan itu juga memuat tiga perubahan yang bukan drift: `aws_security_group.alb` dan `aws_security_group.legacy[0]` (atribut `ingress` versi lama di state berubah dari `103.211.143.242/32` ke `118.99.119.185/32`, karena aturan diubah lewat resource aturan terpisah) dan `aws_cloudwatch_metric_alarm.latensi` (daftar aksi kosong `[]` terbaca untuk pertama kali). Ketiganya tidak membuat plan biasa mengusulkan perubahan; hanya tag `diubah-manual` yang merupakan drift sungguhan. `tofu apply -refresh-only` tidak dijalankan. |
+| Keputusan (kode diubah atau kenyataan dikembalikan) dan alasannya | Kenyataan dikembalikan ke kode lewat `tofu apply`. Tag `diubah-manual` tidak punya alasan, pemilik, atau catatan; mempertahankannya lewat `apply -refresh-only` hanya menyalinnya ke state sementara kode tetap tidak memuatnya, sehingga apply berikutnya akan membatalkannya diam-diam. Ini pola insiden O5 KSL (perubahan manual di konsol tanpa catatan): perubahan yang memang perlu harus masuk lewat kode dan review. |
 | Plan dan exit code setelah rekonsiliasi; ID server hijau sebelum dan sesudah | |
 
 ## Catatan Bagian F — Contract
