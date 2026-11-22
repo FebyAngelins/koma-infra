@@ -58,11 +58,24 @@ provider "aws" {
   }
 }
 
+variable "github_repo_imutabel" {
+  type        = string
+  default     = ""
+  description = "Awalan sub imutabel GitHub (pemilik@id/nama@id) bila repo memakai use_immutable_subject; kosong bila tidak"
+  validation {
+    condition     = var.github_repo_imutabel == "" || can(regex("^[A-Za-z0-9-]+@[0-9]+/[A-Za-z0-9._-]+@[0-9]+$", var.github_repo_imutabel))
+    error_message = "github_repo_imutabel berbentuk pemilik@id/nama@id, tanpa awalan repo: dan tanpa *."
+  }
+}
+
 data "aws_caller_identity" "saya" {}
 
 locals {
   akun   = data.aws_caller_identity.saya.account_id
   awalan = "koma-${var.nim}-m07"
+  # Bentuk sub klasik (repo:pemilik/nama) dan, bila repo memakai subjek imutabel GitHub,
+  # bentuk repo:pemilik@id/nama@id. Keduanya tetap hanya untuk SATU repo, cabang main, dan PR.
+  repo_sub = compact([var.github_repo, var.github_repo_imutabel])
 }
 
 # E.1 Satu provider OIDC per akun untuk GitHub. AWS tidak lagi memakai thumbprint untuk
@@ -88,10 +101,9 @@ resource "aws_iam_role" "pipeline" {
       Condition = {
         StringEquals = { "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com" }
         StringLike = {
-          "token.actions.githubusercontent.com:sub" = [
-            "repo:${var.github_repo}:ref:refs/heads/main",
-            "repo:${var.github_repo}:pull_request",
-          ]
+          "token.actions.githubusercontent.com:sub" = flatten([
+            for r in local.repo_sub : ["repo:${r}:ref:refs/heads/main", "repo:${r}:pull_request"]
+          ])
         }
       }
     }]
