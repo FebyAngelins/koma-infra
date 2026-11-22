@@ -1,0 +1,125 @@
+# Uji tanpa kredensial AWS: provider aws dipalsukan (mock_provider), sehingga uji ini juga
+# berjalan di job "uji" pipeline yang sengaja tidak diberi akses AWS.
+#   tofu init -backend=false && tofu test
+
+mock_provider "aws" {
+  mock_data "aws_caller_identity" {
+    defaults = { account_id = "111122223333" }
+  }
+  mock_data "aws_region" {
+    defaults = { region = "ap-southeast-2" }
+  }
+  # Atribut ARN palsu harus berbentuk ARN karena provider memeriksa bentuknya.
+  mock_resource "aws_sns_topic" {
+    defaults = { arn = "arn:aws:sns:ap-southeast-2:111122223333:koma-uji-pesanan" }
+  }
+  mock_resource "aws_sqs_queue" {
+    defaults = {
+      arn = "arn:aws:sqs:ap-southeast-2:111122223333:koma-uji-antrean"
+      url = "https://sqs.ap-southeast-2.amazonaws.com/111122223333/koma-uji-antrean"
+    }
+  }
+  mock_resource "aws_iam_role" {
+    defaults = { arn = "arn:aws:iam::111122223333:role/koma-uji-pengarsip" }
+  }
+  mock_resource "aws_lambda_function" {
+    defaults = { arn = "arn:aws:lambda:ap-southeast-2:111122223333:function:koma-uji-pengarsip" }
+  }
+}
+
+variables {
+  nim          = "121450001"
+  kelompok     = "k00"
+  lingkungan   = "dev"
+  cost_center  = "CC-101"
+  data_class   = "internal"
+  ukuran       = "kecil"
+  retensi_hari = 1
+  dengan_dlq   = false
+  anggaran_usd = 2
+}
+
+run "dev_kecil_tanpa_dlq" {
+  command = apply
+
+  assert {
+    condition     = module.jalur.memori_mb == 128
+    error_message = "dev memakai preset kecil (128 MB)"
+  }
+  assert {
+    condition     = module.jalur.dlq_url == null
+    error_message = "dev tidak memakai DLQ"
+  }
+  assert {
+    condition     = output.fungsi == "koma-121450001-m07-dev-pengarsip"
+    error_message = "nama fungsi mengikuti koma-<nim>-m07-<lingkungan>-pengarsip"
+  }
+  assert {
+    condition     = anytrue([for f in aws_budgets_budget.lingkungan.cost_filter : contains(f.values, "user:cost-center$CC-101")])
+    error_message = "budget disaring pada tag cost-center lingkungannya"
+  }
+}
+
+# C.4 Prod dari kode yang sama, tiga penolakan validasi, dan satu peringatan check
+run "prod_dari_kode_yang_sama" {
+  command = apply
+
+  variables {
+    lingkungan   = "prod"
+    cost_center  = "CC-201"
+    data_class   = "rahasia"
+    ukuran       = "sedang"
+    retensi_hari = 7
+    dengan_dlq   = true
+    anggaran_usd = 5
+  }
+
+  assert {
+    condition     = module.jalur.memori_mb == 256
+    error_message = "prod memakai preset sedang (256 MB)"
+  }
+  assert {
+    condition     = module.jalur.dlq_url != null
+    error_message = "prod memakai DLQ"
+  }
+  assert {
+    condition     = output.bucket_arsip == "koma-121450001-m07-prod-arsip-111122223333"
+    error_message = "bucket arsip berakhiran ID akun"
+  }
+}
+
+run "rahasia_di_dev_ditolak" {
+  command = plan
+  variables {
+    data_class = "rahasia"
+  }
+  expect_failures = [var.data_class]
+}
+
+run "pusat_biaya_tak_sah" {
+  command = plan
+  variables {
+    cost_center = "umum"
+  }
+  expect_failures = [var.cost_center]
+}
+
+run "ukuran_di_luar_preset" {
+  command = plan
+  variables {
+    ukuran = "besar"
+  }
+  expect_failures = [var.ukuran]
+}
+
+run "prod_tanpa_dlq_diperingatkan" {
+  command = plan
+  variables {
+    lingkungan  = "prod"
+    cost_center = "CC-201"
+    data_class  = "rahasia"
+    ukuran      = "sedang"
+    dengan_dlq  = false
+  }
+  expect_failures = [check.prod_tangguh]
+}
