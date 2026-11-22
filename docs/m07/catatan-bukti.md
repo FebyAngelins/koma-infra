@@ -107,7 +107,27 @@ Potret 2: 403 (dilewati).
 
 ## Catatan Bagian G — Bongkar
 
-(diisi setelah bongkar)
+| Hal | Isi |
+|---|---|
+| Bongkar prod (sesi) percobaan 1 | https://github.com/FebyAngelins/koma-infra/actions/runs/45028191688: `Plan: 0 to add, 0 to change, 15 to destroy.`, Gerbang `11 passed`, Terapkan gagal setelah 7 resource terhapus: `not authorized to perform: lambda:GetEventSourceMapping on resource: *` saat menunggu pemetaan antrean terhapus. Diperbaiki di `m00-pipeline` (aksi baca ditambah ke `BacaTanpaBatasResource`, `0 to add, 1 to change`), tanpa apply lokal m07 |
+| Bongkar prod (sesi) percobaan 2 | https://github.com/FebyAngelins/koma-infra/actions/runs/45028860839: `Plan: 0 to add, 0 to change, 7 to destroy.`, `Apply complete! Resources: 0 added, 0 changed, 7 destroyed.` |
+| Bongkar dev (sesi) | https://github.com/FebyAngelins/koma-infra/actions/runs/45029350343: `14 to destroy`, `14 destroyed` |
+| `koma sisa` setelah sesi | hanya bucket state (fondasi), dua kunci KMS M05 menunggu dihapus, dan satu pemetaan antrean dev yang sudah terhapus (`get-event-source-mapping` → `ResourceNotFoundException`, sisa daftar tag) |
+| Cara bongkar | seluruhnya lewat pipeline (aksi `bongkar`), tidak memakai jalan darurat lokal |
+
+## Catatan Tugas — Nilai kasus, bangun ulang, dan bongkar lewat pipeline
+
+| Hal | Isi |
+|---|---|
+| PR nilai kasus | https://github.com/FebyAngelins/koma-infra/pull/9: dev `CC-101` → `CC-900` (data_class tetap `internal`), prod `CC-201` → `CC-120` (data_class tetap `rahasia`); run PR https://github.com/FebyAngelins/koma-infra/actions/runs/45030199937 `Plan: 14 to add`, `11 tests, 11 passed`, Terapkan dilewati |
+| Terapkan dev (merge PR #9) | https://github.com/FebyAngelins/koma-infra/actions/runs/45030785523: `Plan: 14 to add, 0 to change, 0 to destroy.`, `11 passed`, `Apply complete! Resources: 14 added, 0 changed, 0 destroyed.` (21.06 WIB) |
+| Terapkan prod (manual) | https://github.com/FebyAngelins/koma-infra/actions/runs/45031142905: `Plan: 15 to add, 0 to change, 0 to destroy.`, `11 passed`, `Apply complete! Resources: 15 added, 0 changed, 0 destroyed.` (21.10 WIB) |
+| Pesanan | 21.10.55 `koma kirim dev`: 5 pesanan sah (P-20261122141055-001 … -005); 21.11.04 `koma kirim prod --jumlah 3 --rusak 1`: 3 sah (P-20261122141104-001 … -003) dan 1 rusak `840a32e7-…` |
+| Sebelum bongkar (±21.17 WIB, kurang dari 15 menit setelah kirim; jejak CloudTrail sudah muncul) | `koma showback`: dev `CC-900` internal (1 event-source-mapping, 1 function, 1 log-group, 1 s3, 1 sns, 1 sqs), prod `CC-120` rahasia (sama, 2 sqs), tak bertuan 0; DLQ prod `ApproximateNumberOfMessages = 1`; tag topik prod `penerap = github-actions`, `run = 45031142905`, `cost-center = CC-120`; CloudTrail `GetSubscriptionAttributes`, `ListSubscriptionsByTopic` oleh `koma-pipeline-45031142905` pukul 21.10.25 WIB; `koma cek m07` verifier 403 |
+| Bongkar prod (Tugas) | https://github.com/FebyAngelins/koma-infra/actions/runs/45032109640: `15 to destroy`, `11 passed`, `Apply complete! Resources: 0 added, 0 changed, 15 destroyed.` |
+| Bongkar dev (Tugas) | https://github.com/FebyAngelins/koma-infra/actions/runs/45032802012: `14 to destroy`, `11 passed`, `Apply complete! Resources: 0 added, 0 changed, 14 destroyed.` |
+| Potret bersih dan sisa | `koma cek m07` verifier 403; `koma sisa`: hanya bucket state (fondasi), dua kunci KMS M05 menunggu dihapus, satu pemetaan antrean di daftar tag yang sudah `ResourceNotFoundException` |
+| Tidak ada apply lokal | sejak merge PR #7 stack m07 hanya diterapkan dan dibongkar oleh pipeline; apply lokal hanya pada `m00-pipeline` (izin dan trust) dan `m00-verifier` |
 
 ## Langkah dan bukti
 
@@ -126,3 +146,13 @@ Potret 2: 403 (dilewati).
 | 22-11 20.07 | run 45025746837 (merge ke main) | dev 8 changed lewat pipeline |
 | 22-11 20.20 | run 45026876534 (PR #8) | ditahan gerbang (`s3:*`) |
 | 22-11 20.29 | run 45027648829 (manual prod) | prod 9 changed lewat pipeline; `koma cek m07` 403 |
+| 22-11 20.35 | run 45028191688 (bongkar prod) | gagal izin `lambda:GetEventSourceMapping`, 7 terhapus |
+| 22-11 20.43 | `tofu apply` m00-pipeline, run 45028860839 | izin diperbaiki; prod 7 destroyed |
+| 22-11 20.48 | run 45029350343 (bongkar dev) | 14 destroyed; `koma sisa` bersih |
+| 22-11 20.58 | PR #9, run 45030199937 | nilai KSL lulus gerbang, 14 to add |
+| 22-11 21.05 | merge PR #9, run 45030785523 | dev 14 added lewat pipeline |
+| 22-11 21.08 | run 45031142905 (manual prod) | prod 15 added lewat pipeline |
+| 22-11 21.11 | `koma kirim dev`, `koma kirim prod --jumlah 3 --rusak 1` | 5 + 3 sah, 1 rusak |
+| 22-11 ±21.17 | `koma showback`, `koma cek m07`, CloudTrail | CC-900/CC-120, DLQ 1, jejak `koma-pipeline-45031142905`; verifier 403 |
+| 22-11 21.19 | run 45032109640 (bongkar prod) | 15 destroyed |
+| 22-11 21.27 | run 45032802012 (bongkar dev) | 14 destroyed; `koma cek m07` 403; `koma sisa` bersih |
