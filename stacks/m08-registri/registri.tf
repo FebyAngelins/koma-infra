@@ -47,6 +47,33 @@ provider "aws" {
   }
 }
 
-# TODO A.1  aws_ecr_repository.api ("koma-${var.nim}-m08-api", IMMUTABLE, force_delete, scan_on_push,
-#           tag peran = "registri") dan aws_ecr_lifecycle_policy.api (simpan 5 image terbaru)
-# TODO A.1  output repo_url
+# A.1 Tag image tidak dapat ditimpa: versi 8.0.0 selalu berarti isi yang sama, sehingga task
+# definition yang menyebut 8.0.0 dapat diulang persis (reproducible).
+resource "aws_ecr_repository" "api" {
+  name                 = "koma-${var.nim}-m08-api"
+  image_tag_mutability = "IMMUTABLE"
+  force_delete         = true # repo lab: image ikut terhapus saat destroy
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  tags = { Name = "koma-${var.nim}-m08-api", peran = "registri" }
+}
+
+# Simpan lima image terakhir saja: ruang ECR ditagih per GB-bulan.
+resource "aws_ecr_lifecycle_policy" "api" {
+  repository = aws_ecr_repository.api.name
+  policy = jsonencode({
+    rules = [{
+      rulePriority = 1
+      description  = "simpan 5 image terbaru"
+      selection    = { tagStatus = "any", countType = "imageCountMoreThan", countNumber = 5 }
+      action       = { type = "expire" }
+    }]
+  })
+}
+
+output "repo_url" {
+  value = aws_ecr_repository.api.repository_url
+}

@@ -46,6 +46,29 @@ jobs:
           echo "VERSI=$VERSI" >> "$GITHUB_ENV"
       - name: Build image
         run: docker build --build-arg "VERSI=$VERSI" -t "layanan:$VERSI" layanan
-      # TODO A.3  langkah "Uji asap container" (docker run --read-only, /health, /versi = $VERSI)
-      # TODO A.3  langkah OIDC (role pipeline, sesi koma-pipeline-<run_id>), masuk ECR
-      #           (aws-actions/amazon-ecr-login@v2, id: ecr), tolak versi yang sudah ada, lalu dorong
+      - name: Uji asap container (root filesystem baca-saja, seperti di ECS)
+        run: |
+          docker run -d --read-only --name uji -p 8080:8080 "layanan:$VERSI"
+          for _ in $(seq 1 20); do curl -fsS http://127.0.0.1:8080/health && break; sleep 1; done
+          curl -fsS http://127.0.0.1:8080/versi | tee /dev/stderr | grep -q "\"versi\": \"$VERSI\""
+          docker rm -f uji
+      - name: Kredensial sementara lewat OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          role-session-name: koma-pipeline-${{ github.run_id }}
+          aws-region: ap-southeast-2
+      - name: Masuk ke ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Tolak versi yang sudah ada
+        run: |
+          if aws ecr describe-images --repository-name "$REPO" --image-ids "imageTag=$VERSI" >/dev/null 2>&1; then
+            echo "::error::$REPO:$VERSI sudah ada (tag tidak dapat ditimpa). Naikkan layanan/VERSI."; exit 1
+          fi
+      - name: Dorong
+        run: |
+          TUJUAN="${{ steps.ecr.outputs.registry }}/$REPO:$VERSI"
+          docker tag "layanan:$VERSI" "$TUJUAN"
+          docker push "$TUJUAN"
+          echo "Didorong: $TUJUAN" >> "$GITHUB_STEP_SUMMARY"
