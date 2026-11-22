@@ -111,7 +111,8 @@ def buat_handler(metrik: Metrik, versi: str, peran: str, penerbit: Penerbit):
                 elif metode == "GET" and url.path == "/versi":
                     kode = 200
                     self._kirim(kode, {"versi": versi, "peran": peran, "host": socket.gethostname(),
-                                       "fitur": "antrean-klinik-percontohan"})
+                                       "fitur": "antrean-klinik-percontohan",
+                                       "pengingat": "18.00"})
                 elif metode == "GET" and url.path == "/hitung":
                     n = min(int(q.get("n", ["200000"])[0]), 5_000_000)
                     kode = 200
