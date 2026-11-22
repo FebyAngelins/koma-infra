@@ -13,7 +13,25 @@ module "jalur" {
   versi        = var.versi
 }
 
-# TODO C.2  aws_budgets_budget.lingkungan ("koma-${var.nim}-m07-${var.lingkungan}", COST, bulanan,
-#           batas var.anggaran_usd, cost_filter TagKeyValue format("user:cost-center$%s", var.cost_center))
+# C.2 Showback dan anggaran per pusat biaya (G1, G3). Saringan tag baru menghitung biaya setelah
+# tag cost-center diaktifkan sebagai cost allocation tag di Billing; budget tetap dapat dibuat.
+resource "aws_budgets_budget" "lingkungan" {
+  name         = "koma-${var.nim}-m07-${var.lingkungan}"
+  budget_type  = "COST"
+  limit_amount = format("%.1f", var.anggaran_usd)
+  limit_unit   = "USD"
+  time_unit    = "MONTHLY"
 
-# TODO C.3  check "prod_tangguh": prod semestinya memakai DLQ dan ukuran sedang
+  cost_filter {
+    name   = "TagKeyValue"
+    values = [format("user:cost-center$%s", var.cost_center)]
+  }
+}
+
+# C.3 Lapis 2 (kode, peringatan): plan tetap jalan, tetapi peringatannya tercetak di setiap plan.
+check "prod_tangguh" {
+  assert {
+    condition     = var.lingkungan != "prod" || (var.dengan_dlq && var.ukuran == "sedang")
+    error_message = "Prod semestinya memakai DLQ dan ukuran sedang (G4, O1)."
+  }
+}
