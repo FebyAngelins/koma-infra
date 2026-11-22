@@ -1,0 +1,51 @@
+# Pipeline image Modul 08: setiap versi layanan dibangun SEKALI di sini, diuji, lalu didorong ke
+# registri koma-<nim>-m08-api dengan tag dari layanan/VERSI (tag tidak dapat ditimpa).
+# Infrastruktur layanan (stack m08-layanan) memakai tag itu; tidak ada build di laptop.
+#
+#   push ke main (layanan/** berubah) atau jalankan manual -> uji -> build -> uji asap -> dorong
+#
+# Variabel repo yang dipakai (dari Modul 07): AWS_ROLE_ARN, KOMA_NIM.
+name: m08-image
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "layanan/**"
+      - ".github/workflows/m08.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  uji:
+    name: uji layanan (tanpa AWS)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Uji unit
+        run: python3 -m unittest discover -s layanan
+
+  bangun-dan-dorong:
+    name: build, uji asap, dorong ke ECR
+    needs: uji
+    runs-on: ubuntu-latest
+    # Hanya job ini yang boleh meminta token OIDC ke GitHub (satu baris, gaya flow YAML).
+    permissions: {contents: read, id-token: write}
+    env:
+      REPO: koma-${{ vars.KOMA_NIM }}-m08-api
+    steps:
+      - uses: actions/checkout@v4
+      - name: Versi dari layanan/VERSI
+        run: |
+          VERSI="$(tr -d '[:space:]' < layanan/VERSI)"
+          if ! echo "$VERSI" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::layanan/VERSI harus MAYOR.MINOR.PATCH, bukan '$VERSI'"; exit 1
+          fi
+          echo "VERSI=$VERSI" >> "$GITHUB_ENV"
+      - name: Build image
+        run: docker build --build-arg "VERSI=$VERSI" -t "layanan:$VERSI" layanan
+      # TODO A.3  langkah "Uji asap container" (docker run --read-only, /health, /versi = $VERSI)
+      # TODO A.3  langkah OIDC (role pipeline, sesi koma-pipeline-<run_id>), masuk ECR
+      #           (aws-actions/amazon-ecr-login@v2, id: ecr), tolak versi yang sudah ada, lalu dorong
