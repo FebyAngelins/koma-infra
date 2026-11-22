@@ -178,10 +178,11 @@ resource "aws_iam_role_policy" "pipeline" {
         Resource = "arn:aws:lambda:${var.region}:${local.akun}:event-source-mapping:*"
       },
       {
-        # Aksi baca yang tidak mendukung pembatasan resource.
+        # Aksi baca yang tidak mendukung pembatasan resource. lambda:GetEventSourceMapping ikut di sini:
+        # saat menunggu pemetaan terhapus, AWS mengevaluasinya pada resource "*" (temuan run 45028191688).
         Sid      = "BacaTanpaBatasResource"
         Effect   = "Allow"
-        Action   = ["lambda:ListEventSourceMappings", "logs:DescribeLogGroups"]
+        Action   = ["lambda:ListEventSourceMappings", "lambda:GetEventSourceMapping", "logs:DescribeLogGroups"]
         Resource = "*"
       },
     ]
