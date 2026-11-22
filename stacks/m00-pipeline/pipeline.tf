@@ -65,12 +65,122 @@ locals {
   awalan = "koma-${var.nim}-m07"
 }
 
-# TODO E.1  aws_iam_openid_connect_provider.github (url token.actions.githubusercontent.com,
-#           client_id_list sts.amazonaws.com)
-# TODO E.1  aws_iam_role.pipeline ("koma-${var.nim}-pipeline", sesi maks. 3600): trust Federated ke provider,
-#           sts:AssumeRoleWithWebIdentity, aud = sts.amazonaws.com, sub hanya
-#           repo:<github_repo>:ref:refs/heads/main dan repo:<github_repo>:pull_request
-# TODO E.1  aws_iam_role_policy.pipeline "koma-pipeline-m07": tujuh pernyataan di naskah (StateM07,
-#           DaftarState, JalurM07, RoleFungsi, SerahkanRoleKeLambda, PemetaanAntrean,
-#           TagPemetaanAntrean, BacaTanpaBatasResource)
-# TODO E.1  output role_arn dan oidc_provider_arn
+# E.1 Satu provider OIDC per akun untuk GitHub. AWS tidak lagi memakai thumbprint untuk
+# token.actions.githubusercontent.com, sehingga daftar thumbprint tidak diisi.
+resource "aws_iam_openid_connect_provider" "github" {
+  url            = "https://token.actions.githubusercontent.com"
+  client_id_list = ["sts.amazonaws.com"]
+  tags           = { Name = "koma-${var.nim}-github-oidc" }
+}
+
+# Hanya run dari cabang main (terapkan) dan dari pull request (rencana) di SATU repo yang
+# boleh mengambil role ini. Tanpa syarat sub, repo GitHub siapa pun dapat memakainya.
+resource "aws_iam_role" "pipeline" {
+  name                 = "koma-${var.nim}-pipeline"
+  description          = "Dipakai GitHub Actions repo ${var.github_repo} lewat OIDC"
+  max_session_duration = 3600
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Federated = aws_iam_openid_connect_provider.github.arn }
+      Action    = "sts:AssumeRoleWithWebIdentity"
+      Condition = {
+        StringEquals = { "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com" }
+        StringLike = {
+          "token.actions.githubusercontent.com:sub" = [
+            "repo:${var.github_repo}:ref:refs/heads/main",
+            "repo:${var.github_repo}:pull_request",
+          ]
+        }
+      }
+    }]
+  })
+  tags = { Name = "koma-${var.nim}-pipeline" }
+}
+
+# Batas nama, bukan batas aksi: pipeline boleh mengelola apa pun yang bernama koma-<nim>-m07-*,
+# dan tidak boleh menyentuh yang lain (stack modul lain, role verifier, role pipeline sendiri).
+resource "aws_iam_role_policy" "pipeline" {
+  name = "koma-pipeline-m07"
+  role = aws_iam_role.pipeline.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid      = "StateM07"
+        Effect   = "Allow"
+        Action   = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
+        Resource = "arn:aws:s3:::koma-${var.nim}-tfstate-${local.akun}/m07/*"
+      },
+      {
+        # Hanya daftar nama objek. Tanpa syarat prefix: backend S3 juga mendaftar prefix env:/
+        # (workspace) saat init.
+        Sid      = "DaftarState"
+        Effect   = "Allow"
+        Action   = "s3:ListBucket"
+        Resource = "arn:aws:s3:::koma-${var.nim}-tfstate-${local.akun}"
+      },
+      {
+        Sid    = "JalurM07"
+        Effect = "Allow"
+        Action = ["sns:*", "sqs:*", "lambda:*", "s3:*", "logs:*", "budgets:*"]
+        Resource = [
+          "arn:aws:sns:${var.region}:${local.akun}:${local.awalan}-*",
+          "arn:aws:sqs:${var.region}:${local.akun}:${local.awalan}-*",
+          "arn:aws:lambda:${var.region}:${local.akun}:function:${local.awalan}-*",
+          "arn:aws:s3:::${local.awalan}-*",
+          "arn:aws:s3:::${local.awalan}-*/*",
+          "arn:aws:logs:${var.region}:${local.akun}:log-group:/aws/lambda/${local.awalan}-*",
+          "arn:aws:budgets::${local.akun}:budget/${local.awalan}-*",
+        ]
+      },
+      {
+        Sid    = "RoleFungsi"
+        Effect = "Allow"
+        Action = [
+          "iam:CreateRole", "iam:DeleteRole", "iam:GetRole", "iam:TagRole", "iam:UntagRole",
+          "iam:UpdateAssumeRolePolicy", "iam:PutRolePolicy", "iam:GetRolePolicy", "iam:DeleteRolePolicy",
+          "iam:ListRolePolicies", "iam:ListAttachedRolePolicies", "iam:ListInstanceProfilesForRole",
+        ]
+        Resource = "arn:aws:iam::${local.akun}:role/${local.awalan}-*"
+      },
+      {
+        Sid       = "SerahkanRoleKeLambda"
+        Effect    = "Allow"
+        Action    = "iam:PassRole"
+        Resource  = "arn:aws:iam::${local.akun}:role/${local.awalan}-*"
+        Condition = { StringEquals = { "iam:PassedToService" = "lambda.amazonaws.com" } }
+      },
+      {
+        Sid       = "PemetaanAntrean"
+        Effect    = "Allow"
+        Action    = ["lambda:CreateEventSourceMapping", "lambda:UpdateEventSourceMapping", "lambda:DeleteEventSourceMapping"]
+        Resource  = "*"
+        Condition = { StringLike = { "lambda:FunctionArn" = "arn:aws:lambda:${var.region}:${local.akun}:function:${local.awalan}-*" } }
+      },
+      {
+        Sid      = "TagPemetaanAntrean"
+        Effect   = "Allow"
+        Action   = ["lambda:GetEventSourceMapping", "lambda:ListTags", "lambda:TagResource", "lambda:UntagResource"]
+        Resource = "arn:aws:lambda:${var.region}:${local.akun}:event-source-mapping:*"
+      },
+      {
+        # Aksi baca yang tidak mendukung pembatasan resource.
+        Sid      = "BacaTanpaBatasResource"
+        Effect   = "Allow"
+        Action   = ["lambda:ListEventSourceMappings", "logs:DescribeLogGroups"]
+        Resource = "*"
+      },
+    ]
+  })
+}
+
+output "role_arn" {
+  description = "Salin ke variabel repo GitHub AWS_ROLE_ARN"
+  value       = aws_iam_role.pipeline.arn
+}
+
+output "oidc_provider_arn" {
+  value = aws_iam_openid_connect_provider.github.arn
+}
