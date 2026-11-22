@@ -150,7 +150,7 @@ resource "aws_iam_role_policy" "pengarsip" {
       {
         Sid      = "TulisArsip"
         Effect   = "Allow"
-        Action   = ["s3:PutObject"]
+        Action   = ["s3:*"]
         Resource = "arn:aws:s3:::${local.bucket}/arsip/*"
       },
       {
