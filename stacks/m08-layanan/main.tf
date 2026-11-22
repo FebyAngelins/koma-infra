@@ -46,5 +46,14 @@ locals {
   log_grup = "/koma/${var.nim}/m08/api"
 }
 
-# TODO B.1  module "pesanan" (../../modules/antrean-arsip dari Modul 07; awalan "${local.awalan}-prod",
-#           lingkungan prod, ukuran sedang, retensi 1 hari, dengan DLQ, versi 1.0.0)
+# B.1 Worker pesanan: modul yang sama dengan Modul 07, satu jalur prod (C1).
+module "pesanan" {
+  source = "../../modules/antrean-arsip"
+
+  awalan       = "${local.awalan}-prod"
+  lingkungan   = "prod"
+  ukuran       = "sedang"
+  retensi_hari = 1
+  dengan_dlq   = true
+  versi        = "1.0.0"
+}
