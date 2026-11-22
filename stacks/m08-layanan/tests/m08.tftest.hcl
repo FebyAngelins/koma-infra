@@ -91,6 +91,57 @@ run "stabil_saja" {
   }
 }
 
-# TODO D.4  run "canary_dua_puluh_persen" (apply, versi_canary 8.1.0, bobot 20): dua layanan, bobot 80/20,
-#           image canary bertag 8.1.0
-# TODO D.4  run penolakan: bobot tanpa versi_canary, skala_maks 4, ukuran besar, versi tidak sah
+# D.4 Canary 20% dari kode yang sama, dan empat penolakan validasi
+run "canary_dua_puluh_persen" {
+  command = apply
+
+  variables {
+    versi_canary = "8.1.0"
+    bobot_canary = 20
+  }
+
+  assert {
+    condition     = length(aws_ecs_service.api) == 2
+    error_message = "canary menambah layanan kedua"
+  }
+  assert {
+    condition     = toset([for tg in aws_lb_listener.http.default_action[0].forward[0].target_group : tg.weight]) == toset([80, 20])
+    error_message = "bobot listener 80 stabil, 20 canary"
+  }
+  assert {
+    condition     = endswith(jsondecode(aws_ecs_task_definition.api["canary"].container_definitions)[0].image, ":8.1.0")
+    error_message = "image canary bertag versi_canary"
+  }
+}
+
+run "bobot_tanpa_versi_ditolak" {
+  command = plan
+  variables {
+    bobot_canary = 20
+  }
+  expect_failures = [var.bobot_canary]
+}
+
+run "skala_di_atas_batas_ditolak" {
+  command = plan
+  variables {
+    skala_maks = 4
+  }
+  expect_failures = [var.skala_maks]
+}
+
+run "ukuran_di_luar_preset_ditolak" {
+  command = plan
+  variables {
+    ukuran = "besar"
+  }
+  expect_failures = [var.ukuran]
+}
+
+run "versi_tidak_sah_ditolak" {
+  command = plan
+  variables {
+    versi_stabil = "terbaru"
+  }
+  expect_failures = [var.versi_stabil]
+}
