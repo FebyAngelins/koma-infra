@@ -79,6 +79,13 @@ resource "aws_lb_target_group" "api" {
     unhealthy_threshold = 2
   }
   tags = { Name = "${local.awalan}-${each.key}", peran = each.key }
+
+  # K-08: tanpa ini OpenTofu menghapus target group canary SEBELUM listener berhenti merujuknya
+  # (ResourceInUse, 20% permintaan 503 saat promosi 8.1.0). Dengan create_before_destroy,
+  # listener diperbarui lebih dulu, baru target group lama dihapus.
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 # Listener berbobot: stabil 100 - bobot_canary, canary bobot_canary bila ada.
