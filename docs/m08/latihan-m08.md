@@ -68,7 +68,7 @@ Keluaran `koma pesan` (satu baris):
 Kunci objek di bucket arsip dan baris log fungsi pengarsip untuk pesanan itu:
 
 ```text
-s3://koma-123450039-m08-prod-arsip-530545857345/arsip/2026-11-22/P-c80b0de3ac87.json   (2026-11-22 22:48:15 WIB, 155 byte)
+s3://koma-123450039-m08-prod-arsip-<akun>/arsip/2026-11-22/P-c80b0de3ac87.json   (2026-11-22 22:48:15 WIB, 155 byte)
 
 /aws/lambda/koma-123450039-m08-prod-pengarsip
 2026-11-22T15:48:14.105000+00:00 2026/11/22/[$LATEST]ff936cf8dffb4e3a993e823af027d5d5 {"arsip": "arsip/2026-11-22/P-c80b0de3ac87.json"}
